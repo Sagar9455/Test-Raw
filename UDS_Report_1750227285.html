@@ -1,0 +1,297 @@
+<html><head><title>UDS Diagnostic Report</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body { font-family: Arial; margin: 20px; }
+        .pass { color: green; font-weight: bold; }
+        .fail { color: red; font-weight: bold; }
+        summary { font-weight: bold; cursor: pointer; }
+        table { border-collapse: collapse; width: 100%; margin-top: 10px; }
+        th, td { border: 1px solid #ccc; padding: 8px; }
+        th { background: #f0f0f0; }
+        #chart-container { width: 300px; margin: 20px auto; }
+    </style></head><body>
+    <h1>UDS Diagnostic Report</h1>
+    <div><strong>Generated:</strong> 2025-06-18 11:44:45</div>
+    <div><strong>CAN Log File:</strong> CANLog_Testcase_20250618_114217.asc</div>
+    <div><strong>Total Test Cases:</strong> 50</div>
+    <div class="pass">Passed: 39</div>
+    <div class="fail">Failed: 11</div>
+    <div><strong>Test Duration:</strong> 141.955 seconds</div>
+
+    <div id="chart-container"><canvas id="passFailChart"></canvas></div>
+
+    <script>
+        const ctx = document.getElementById('passFailChart').getContext('2d');
+        new Chart(ctx, {
+            type: 'pie',
+            data: {
+                labels: ['Passed', 'Failed'],
+                datasets: [{
+                    data: [39, 11],
+                    backgroundColor: ['#4CAF50', '#F44336']
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        position: 'bottom'
+                    },
+                    title: {
+                        display: true,
+                        text: 'Test Case Results'
+                    }
+                }
+            }
+        });
+    </script><hr><br><details><summary>TC_001 - <span class='pass'>Pass</span></summary>
+<table><tr><th>Step</th><th>Description</th><th>Timestamp</th><th>Type</th><th>Status</th><th>Failure Reason</th></tr>
+<tr><td>1</td><td>DefaultSession(10 01)</td><td>0.048126</td><td>Request Sent</td><td></td><td>-</td></tr>
+<tr><td>2</td><td></td><td>0.065243</td><td>Response Received</td><td>Pass</td><td></td></tr>
+</table></details>
+<details><summary>TC_002 - <span class='pass'>Pass</span></summary>
+<table><tr><th>Step</th><th>Description</th><th>Timestamp</th><th>Type</th><th>Status</th><th>Failure Reason</th></tr>
+<tr><td>1</td><td>Extended Session (10 03)</td><td>2.159496</td><td>Request Sent</td><td></td><td>-</td></tr>
+<tr><td>2</td><td></td><td>2.174830</td><td>Response Received</td><td>Pass</td><td></td></tr>
+</table></details>
+<details><summary>TC_003 - <span class='fail'>Fail</span></summary>
+<table><tr><th>Step</th><th>Description</th><th>Timestamp</th><th>Type</th><th>Status</th><th>Failure Reason</th></tr>
+<tr><td>1</td><td></td><td>4.271764</td><td>Request Sent</td><td></td><td>-</td></tr>
+<tr><td>2</td><td></td><td>4.285024</td><td>Response Received</td><td>Fail</td><td>NRC 12 : subFunctionNotSupported</td></tr>
+</table></details>
+<details><summary>TC_004 - <span class='pass'>Pass</span></summary>
+<table><tr><th>Step</th><th>Description</th><th>Timestamp</th><th>Type</th><th>Status</th><th>Failure Reason</th></tr>
+<tr><td>1</td><td>Hard Reset with Extended session(11 01)</td><td>10.645288</td><td>Request Sent</td><td></td><td>-</td></tr>
+<tr><td>2</td><td></td><td>10.654917</td><td>Response Received</td><td>Pass</td><td></td></tr>
+</table></details>
+<details><summary>TC_005 - <span class='fail'>Fail</span></summary>
+<table><tr><th>Step</th><th>Description</th><th>Timestamp</th><th>Type</th><th>Status</th><th>Failure Reason</th></tr>
+<tr><td>1</td><td>ECU Reset (0x11 03)</td><td>12.744539</td><td>Request Sent</td><td></td><td>-</td></tr>
+<tr><td>2</td><td></td><td>12.751677</td><td>Response Received</td><td>Fail</td><td>NRC 12 : subFunctionNotSupported</td></tr>
+</table></details>
+<details><summary>TC_006 - <span class='fail'>Fail</span></summary>
+<table><tr><th>Step</th><th>Description</th><th>Timestamp</th><th>Type</th><th>Status</th><th>Failure Reason</th></tr>
+<tr><td>1</td><td></td><td>14.848234</td><td>Request Sent</td><td></td><td>-</td></tr>
+<tr><td>2</td><td></td><td>14.861705</td><td>Response Received</td><td>Fail</td><td>NRC 12 : subFunctionNotSupported</td></tr>
+</table></details>
+<details><summary>TC_007 - <span class='pass'>Pass</span></summary>
+<table><tr><th>Step</th><th>Description</th><th>Timestamp</th><th>Type</th><th>Status</th><th>Failure Reason</th></tr>
+<tr><td>1</td><td>DefaultSession(10 01)</td><td>21.169604</td><td>Request Sent</td><td></td><td>-</td></tr>
+<tr><td>2</td><td></td><td>21.191680</td><td>Response Received</td><td>Pass</td><td></td></tr>
+</table></details>
+<details><summary>TC_008 - <span class='fail'>Fail</span></summary>
+<table><tr><th>Step</th><th>Description</th><th>Timestamp</th><th>Type</th><th>Status</th><th>Failure Reason</th></tr>
+<tr><td>1</td><td>DTC setting ON wrong Pre-condition (85 01)</td><td>25.401715</td><td>Request Sent</td><td></td><td>-</td></tr>
+<tr><td>2</td><td></td><td>25.411614</td><td>Response Received</td><td>Fail</td><td>NRC 7F : serviceNotSupportedInActiveSession</td></tr>
+</table></details>
+<details><summary>TC_009 - <span class='fail'>Fail</span></summary>
+<table><tr><th>Step</th><th>Description</th><th>Timestamp</th><th>Type</th><th>Status</th><th>Failure Reason</th></tr>
+<tr><td>1</td><td>DTC setting OFF wrong Pre-condition(85 02)</td><td>27.501065</td><td>Request Sent</td><td></td><td>-</td></tr>
+<tr><td>2</td><td></td><td>27.511684</td><td>Response Received</td><td>Fail</td><td>NRC 7F : serviceNotSupportedInActiveSession</td></tr>
+</table></details>
+<details><summary>TC_010 - <span class='fail'>Fail</span></summary>
+<table><tr><th>Step</th><th>Description</th><th>Timestamp</th><th>Type</th><th>Status</th><th>Failure Reason</th></tr>
+<tr><td>1</td><td></td><td>29.600420</td><td>Request Sent</td><td></td><td>-</td></tr>
+<tr><td>2</td><td></td><td>29.611659</td><td>Response Received</td><td>Fail</td><td>NRC 7F : serviceNotSupportedInActiveSession</td></tr>
+</table></details>
+<details><summary>TC_011 - <span class='pass'>Pass</span></summary>
+<table><tr><th>Step</th><th>Description</th><th>Timestamp</th><th>Type</th><th>Status</th><th>Failure Reason</th></tr>
+<tr><td>1</td><td>Extended Session (10 03)</td><td>33.820954</td><td>Request Sent</td><td></td><td>-</td></tr>
+<tr><td>2</td><td></td><td>33.841926</td><td>Response Received</td><td>Pass</td><td></td></tr>
+</table></details>
+<details><summary>TC_012 - <span class='pass'>Pass</span></summary>
+<table><tr><th>Step</th><th>Description</th><th>Timestamp</th><th>Type</th><th>Status</th><th>Failure Reason</th></tr>
+<tr><td>1</td><td>DTC setting ON wrong Pre-condition (85 01)</td><td>38.069588</td><td>Request Sent</td><td></td><td>-</td></tr>
+<tr><td>2</td><td></td><td>38.081782</td><td>Response Received</td><td>Pass</td><td></td></tr>
+</table></details>
+<details><summary>TC_013 - <span class='pass'>Pass</span></summary>
+<table><tr><th>Step</th><th>Description</th><th>Timestamp</th><th>Type</th><th>Status</th><th>Failure Reason</th></tr>
+<tr><td>1</td><td>DTC setting OFF wrong Pre-condition(85 02)</td><td>40.187990</td><td>Request Sent</td><td></td><td>-</td></tr>
+<tr><td>2</td><td></td><td>40.191906</td><td>Response Received</td><td>Pass</td><td></td></tr>
+</table></details>
+<details><summary>TC_014 - <span class='fail'>Fail</span></summary>
+<table><tr><th>Step</th><th>Description</th><th>Timestamp</th><th>Type</th><th>Status</th><th>Failure Reason</th></tr>
+<tr><td>1</td><td></td><td>42.323907</td><td>Request Sent</td><td></td><td>-</td></tr>
+<tr><td>2</td><td></td><td>42.331825</td><td>Response Received</td><td>Fail</td><td>NRC 12 : subFunctionNotSupported</td></tr>
+</table></details>
+<details><summary>TC_015 - <span class='fail'>Fail</span></summary>
+<table><tr><th>Step</th><th>Description</th><th>Timestamp</th><th>Type</th><th>Status</th><th>Failure Reason</th></tr>
+<tr><td>1</td><td></td><td>46.531541</td><td>Request Sent</td><td></td><td>-</td></tr>
+<tr><td>2</td><td></td><td>46.541882</td><td>Response Received</td><td>Fail</td><td>NRC 12 : subFunctionNotSupported</td></tr>
+</table></details>
+<details><summary>TC_016 - <span class='fail'>Fail</span></summary>
+<table><tr><th>Step</th><th>Description</th><th>Timestamp</th><th>Type</th><th>Status</th><th>Failure Reason</th></tr>
+<tr><td>1</td><td>Read DTC wrong masking Extended session(19 0F)</td><td>57.059397</td><td>Request Sent</td><td></td><td>-</td></tr>
+<tr><td>2</td><td></td><td>57.072099</td><td>Response Received</td><td>Fail</td><td>NRC 12 : subFunctionNotSupported</td></tr>
+</table></details>
+<details><summary>TC_017 - <span class='pass'>Pass</span></summary>
+<table><tr><th>Step</th><th>Description</th><th>Timestamp</th><th>Type</th><th>Status</th><th>Failure Reason</th></tr>
+<tr><td>1</td><td>Fault memory clear Extended session(14 0xFFFFFF)</td><td>67.618154</td><td>Request Sent</td><td></td><td>-</td></tr>
+<tr><td>2</td><td></td><td>67.622217</td><td>Response Received</td><td>Pass</td><td></td></tr>
+</table></details>
+<details><summary>TC_018 - <span class='fail'>Fail</span></summary>
+<table><tr><th>Step</th><th>Description</th><th>Timestamp</th><th>Type</th><th>Status</th><th>Failure Reason</th></tr>
+<tr><td>1</td><td>Fault memory clear wrong Group Extended session(14 0xFFEEEE)</td><td>69.735476</td><td>Request Sent</td><td></td><td>-</td></tr>
+<tr><td>2</td><td></td><td>69.742337</td><td>Response Received</td><td>Fail</td><td>NRC 22 : conditionsNotCorrect</td></tr>
+</table></details>
+<details><summary>TC_019 - <span class='pass'>Pass</span></summary>
+<table><tr><th>Step</th><th>Description</th><th>Timestamp</th><th>Type</th><th>Status</th><th>Failure Reason</th></tr>
+<tr><td>1</td><td>DefaultSession(10 01)</td><td>71.865697</td><td>Request Sent</td><td></td><td>-</td></tr>
+<tr><td>2</td><td></td><td>71.882415</td><td>Response Received</td><td>Pass</td><td></td></tr>
+</table></details>
+<details><summary>TC_020 - <span class='pass'>Pass</span></summary>
+<table><tr><th>Step</th><th>Description</th><th>Timestamp</th><th>Type</th><th>Status</th><th>Failure Reason</th></tr>
+<tr><td>1</td><td>LocalRXSWINDataIdentifier(22 F1 EF)</td><td>73.976999</td><td>Request Sent</td><td></td><td>-</td></tr>
+<tr><td>2</td><td></td><td>73.992344</td><td>Response Received</td><td>Pass</td><td></td></tr>
+</table></details>
+<details><summary>TC_021 - <span class='pass'>Pass</span></summary>
+<table><tr><th>Step</th><th>Description</th><th>Timestamp</th><th>Type</th><th>Status</th><th>Failure Reason</th></tr>
+<tr><td>1</td><td>BodyCANDataBaseVersionNumBErDataIdentifier(22 F1 00)</td><td>76.099103</td><td>Request Sent</td><td></td><td>-</td></tr>
+<tr><td>2</td><td></td><td>76.122472</td><td>Response Received</td><td>Pass</td><td></td></tr>
+</table></details>
+<details><summary>TC_022 - <span class='pass'>Pass</span></summary>
+<table><tr><th>Step</th><th>Description</th><th>Timestamp</th><th>Type</th><th>Status</th><th>Failure Reason</th></tr>
+<tr><td>1</td><td>VehicleManufacturerSparePartNumBErDataIdentifier(22 F1 87)</td><td>78.231191</td><td>Request Sent</td><td></td><td>-</td></tr>
+<tr><td>2</td><td></td><td>78.252565</td><td>Response Received</td><td>Pass</td><td></td></tr>
+</table></details>
+<details><summary>TC_023 - <span class='pass'>Pass</span></summary>
+<table><tr><th>Step</th><th>Description</th><th>Timestamp</th><th>Type</th><th>Status</th><th>Failure Reason</th></tr>
+<tr><td>1</td><td>ECUManufacturingDateDataIdentifier(22 F1 8B)</td><td>80.349140</td><td>Request Sent</td><td></td><td>-</td></tr>
+<tr><td>2</td><td></td><td>80.372457</td><td>Response Received</td><td>Pass</td><td></td></tr>
+</table></details>
+<details><summary>TC_024 - <span class='pass'>Pass</span></summary>
+<table><tr><th>Step</th><th>Description</th><th>Timestamp</th><th>Type</th><th>Status</th><th>Failure Reason</th></tr>
+<tr><td>1</td><td>ECUSerialNumberDataIdentifier (22 F1 8C)</td><td>82.477566</td><td>Request Sent</td><td></td><td>-</td></tr>
+<tr><td>2</td><td></td><td>82.492756</td><td>Response Received</td><td>Pass</td><td></td></tr>
+</table></details>
+<details><summary>TC_025 - <span class='pass'>Pass</span></summary>
+<table><tr><th>Step</th><th>Description</th><th>Timestamp</th><th>Type</th><th>Status</th><th>Failure Reason</th></tr>
+<tr><td>1</td><td>SystemSupplierECUHardwareVersionNumberDataIdentifier(22 F1 91)</td><td>84.595631</td><td>Request Sent</td><td></td><td>-</td></tr>
+<tr><td>2</td><td></td><td>84.612673</td><td>Response Received</td><td>Pass</td><td></td></tr>
+</table></details>
+<details><summary>TC_026 - <span class='pass'>Pass</span></summary>
+<table><tr><th>Step</th><th>Description</th><th>Timestamp</th><th>Type</th><th>Status</th><th>Failure Reason</th></tr>
+<tr><td>1</td><td>SystemSupplierECUHardwareVersionNumberDataIdentifier(22 F1 93)</td><td>86.710005</td><td>Request Sent</td><td></td><td>-</td></tr>
+<tr><td>2</td><td></td><td>86.732665</td><td>Response Received</td><td>Pass</td><td></td></tr>
+</table></details>
+<details><summary>TC_027 - <span class='pass'>Pass</span></summary>
+<table><tr><th>Step</th><th>Description</th><th>Timestamp</th><th>Type</th><th>Status</th><th>Failure Reason</th></tr>
+<tr><td>1</td><td>ECUSoftwareUnit1IVDDataIdentifier(22 F1 C1)</td><td>88.834215</td><td>Request Sent</td><td></td><td>-</td></tr>
+<tr><td>2</td><td></td><td>88.852618</td><td>Response Received</td><td>Pass</td><td></td></tr>
+</table></details>
+<details><summary>TC_028 - <span class='pass'>Pass</span></summary>
+<table><tr><th>Step</th><th>Description</th><th>Timestamp</th><th>Type</th><th>Status</th><th>Failure Reason</th></tr>
+<tr><td>1</td><td>SystemSupplierECUSoftwareVersionNumbe DataIdentifier(22 F1 95)</td><td>90.996831</td><td>Request Sent</td><td></td><td>-</td></tr>
+<tr><td>2</td><td></td><td>91.012764</td><td>Response Received</td><td>Pass</td><td></td></tr>
+</table></details>
+<details><summary>TC_029 - <span class='pass'>Pass</span></summary>
+<table><tr><th>Step</th><th>Description</th><th>Timestamp</th><th>Type</th><th>Status</th><th>Failure Reason</th></tr>
+<tr><td>1</td><td>SoftwareVersionHKMCVehicleManufactureDataIdentifier(22 F1 A0)</td><td>93.107395</td><td>Request Sent</td><td></td><td>-</td></tr>
+<tr><td>2</td><td></td><td>93.122646</td><td>Response Received</td><td>Pass</td><td></td></tr>
+</table></details>
+<details><summary>TC_030 - <span class='pass'>Pass</span></summary>
+<table><tr><th>Step</th><th>Description</th><th>Timestamp</th><th>Type</th><th>Status</th><th>Failure Reason</th></tr>
+<tr><td>1</td><td>ECUSupplierCodeDataIdentifier(22 F1 A1)</td><td>95.237190</td><td>Request Sent</td><td></td><td>-</td></tr>
+<tr><td>2</td><td></td><td>95.252822</td><td>Response Received</td><td>Pass</td><td></td></tr>
+</table></details>
+<details><summary>TC_031 - <span class='pass'>Pass</span></summary>
+<table><tr><th>Step</th><th>Description</th><th>Timestamp</th><th>Type</th><th>Status</th><th>Failure Reason</th></tr>
+<tr><td>1</td><td>ECUSoftwareUNITnumberDataIdentifier(22 F1 B0)</td><td>97.378157</td><td>Request Sent</td><td></td><td>-</td></tr>
+<tr><td>2</td><td></td><td>97.392789</td><td>Response Received</td><td>Pass</td><td></td></tr>
+</table></details>
+<details><summary>TC_032 - <span class='pass'>Pass</span></summary>
+<table><tr><th>Step</th><th>Description</th><th>Timestamp</th><th>Type</th><th>Status</th><th>Failure Reason</th></tr>
+<tr><td>1</td><td>ECU Software UNIT1 Version Data Identifier(22 F1 B1)</td><td>99.483802</td><td>Request Sent</td><td></td><td>-</td></tr>
+<tr><td>2</td><td></td><td>99.502826</td><td>Response Received</td><td>Pass</td><td></td></tr>
+</table></details>
+<details><summary>TC_033 - <span class='pass'>Pass</span></summary>
+<table><tr><th>Step</th><th>Description</th><th>Timestamp</th><th>Type</th><th>Status</th><th>Failure Reason</th></tr>
+<tr><td>1</td><td>S/W Version Dataidentifier(22 F1 DD)</td><td>101.610211</td><td>Request Sent</td><td></td><td>-</td></tr>
+<tr><td>2</td><td></td><td>101.633008</td><td>Response Received</td><td>Pass</td><td></td></tr>
+</table></details>
+<details><summary>TC_034 - <span class='pass'>Pass</span></summary>
+<table><tr><th>Step</th><th>Description</th><th>Timestamp</th><th>Type</th><th>Status</th><th>Failure Reason</th></tr>
+<tr><td>1</td><td>SystemNameOrEngineTypeDataIdentifier(22 F1 97)</td><td>103.744761</td><td>Request Sent</td><td></td><td>-</td></tr>
+<tr><td>2</td><td></td><td>103.762931</td><td>Response Received</td><td>Pass</td><td></td></tr>
+</table></details>
+<details><summary>TC_035 - <span class='pass'>Pass</span></summary>
+<table><tr><th>Step</th><th>Description</th><th>Timestamp</th><th>Type</th><th>Status</th><th>Failure Reason</th></tr>
+<tr><td>1</td><td>BodyCANDataBaseVersionNumBErDataIdentifier(22 F1 00)</td><td>107.968205</td><td>Request Sent</td><td></td><td>-</td></tr>
+<tr><td>2</td><td></td><td>107.983106</td><td>Response Received</td><td>Pass</td><td></td></tr>
+</table></details>
+<details><summary>TC_036 - <span class='pass'>Pass</span></summary>
+<table><tr><th>Step</th><th>Description</th><th>Timestamp</th><th>Type</th><th>Status</th><th>Failure Reason</th></tr>
+<tr><td>1</td><td>VehicleManufacturerSparePartNumBErDataIdentifier(22 F1 87)</td><td>110.091004</td><td>Request Sent</td><td></td><td>-</td></tr>
+<tr><td>2</td><td></td><td>110.113083</td><td>Response Received</td><td>Pass</td><td></td></tr>
+</table></details>
+<details><summary>TC_037 - <span class='pass'>Pass</span></summary>
+<table><tr><th>Step</th><th>Description</th><th>Timestamp</th><th>Type</th><th>Status</th><th>Failure Reason</th></tr>
+<tr><td>1</td><td>ECUManufacturingDateDataIdentifier(22 F1 8B)</td><td>112.214739</td><td>Request Sent</td><td></td><td>-</td></tr>
+<tr><td>2</td><td></td><td>112.233047</td><td>Response Received</td><td>Pass</td><td></td></tr>
+</table></details>
+<details><summary>TC_038 - <span class='pass'>Pass</span></summary>
+<table><tr><th>Step</th><th>Description</th><th>Timestamp</th><th>Type</th><th>Status</th><th>Failure Reason</th></tr>
+<tr><td>1</td><td>ECUSerialNumberDataIdentifier (22 F1 8C)</td><td>114.327896</td><td>Request Sent</td><td></td><td>-</td></tr>
+<tr><td>2</td><td></td><td>114.343023</td><td>Response Received</td><td>Pass</td><td></td></tr>
+</table></details>
+<details><summary>TC_039 - <span class='pass'>Pass</span></summary>
+<table><tr><th>Step</th><th>Description</th><th>Timestamp</th><th>Type</th><th>Status</th><th>Failure Reason</th></tr>
+<tr><td>1</td><td>SystemSupplierECUHardwareVersionNumberDataIdentifier(22 F1 91)</td><td>116.477779</td><td>Request Sent</td><td></td><td>-</td></tr>
+<tr><td>2</td><td></td><td>116.493085</td><td>Response Received</td><td>Pass</td><td></td></tr>
+</table></details>
+<details><summary>TC_040 - <span class='pass'>Pass</span></summary>
+<table><tr><th>Step</th><th>Description</th><th>Timestamp</th><th>Type</th><th>Status</th><th>Failure Reason</th></tr>
+<tr><td>1</td><td>SystemSupplierECUHardwareVersionNumberDataIdentifier(22 F1 93)</td><td>118.597702</td><td>Request Sent</td><td></td><td>-</td></tr>
+<tr><td>2</td><td></td><td>118.613207</td><td>Response Received</td><td>Pass</td><td></td></tr>
+</table></details>
+<details><summary>TC_041 - <span class='pass'>Pass</span></summary>
+<table><tr><th>Step</th><th>Description</th><th>Timestamp</th><th>Type</th><th>Status</th><th>Failure Reason</th></tr>
+<tr><td>1</td><td>ECUSoftwareUnit1IVDDataIdentifier(22 F1 C1)</td><td>120.724118</td><td>Request Sent</td><td></td><td>-</td></tr>
+<tr><td>2</td><td></td><td>120.743366</td><td>Response Received</td><td>Pass</td><td></td></tr>
+</table></details>
+<details><summary>TC_042 - <span class='pass'>Pass</span></summary>
+<table><tr><th>Step</th><th>Description</th><th>Timestamp</th><th>Type</th><th>Status</th><th>Failure Reason</th></tr>
+<tr><td>1</td><td>SystemSupplierECUSoftwareVersionNumbe DataIdentifier(22 F1 95)</td><td>122.876014</td><td>Request Sent</td><td></td><td>-</td></tr>
+<tr><td>2</td><td></td><td>122.893285</td><td>Response Received</td><td>Pass</td><td></td></tr>
+</table></details>
+<details><summary>TC_043 - <span class='pass'>Pass</span></summary>
+<table><tr><th>Step</th><th>Description</th><th>Timestamp</th><th>Type</th><th>Status</th><th>Failure Reason</th></tr>
+<tr><td>1</td><td>SoftwareVersionHKMCVehicleManufactureDataIdentifier(22 F1 A0)</td><td>124.996683</td><td>Request Sent</td><td></td><td>-</td></tr>
+<tr><td>2</td><td></td><td>125.013299</td><td>Response Received</td><td>Pass</td><td></td></tr>
+</table></details>
+<details><summary>TC_044 - <span class='pass'>Pass</span></summary>
+<table><tr><th>Step</th><th>Description</th><th>Timestamp</th><th>Type</th><th>Status</th><th>Failure Reason</th></tr>
+<tr><td>1</td><td>ECUSupplierCodeDataIdentifier(22 F1 A1)</td><td>127.120947</td><td>Request Sent</td><td></td><td>-</td></tr>
+<tr><td>2</td><td></td><td>127.143300</td><td>Response Received</td><td>Pass</td><td></td></tr>
+</table></details>
+<details><summary>TC_045 - <span class='pass'>Pass</span></summary>
+<table><tr><th>Step</th><th>Description</th><th>Timestamp</th><th>Type</th><th>Status</th><th>Failure Reason</th></tr>
+<tr><td>1</td><td>ECUSoftwareUNITnumberDataIdentifier(22 F1 B0)</td><td>129.251389</td><td>Request Sent</td><td></td><td>-</td></tr>
+<tr><td>2</td><td></td><td>129.273237</td><td>Response Received</td><td>Pass</td><td></td></tr>
+</table></details>
+<details><summary>TC_046 - <span class='pass'>Pass</span></summary>
+<table><tr><th>Step</th><th>Description</th><th>Timestamp</th><th>Type</th><th>Status</th><th>Failure Reason</th></tr>
+<tr><td>1</td><td>ECU Software UNIT1 Version Data Identifier(22 F1 B1)</td><td>131.361986</td><td>Request Sent</td><td></td><td>-</td></tr>
+<tr><td>2</td><td></td><td>131.383324</td><td>Response Received</td><td>Pass</td><td></td></tr>
+</table></details>
+<details><summary>TC_047 - <span class='pass'>Pass</span></summary>
+<table><tr><th>Step</th><th>Description</th><th>Timestamp</th><th>Type</th><th>Status</th><th>Failure Reason</th></tr>
+<tr><td>1</td><td>S/W Version Dataidentifier(22 F1 DD)</td><td>133.485651</td><td>Request Sent</td><td></td><td>-</td></tr>
+<tr><td>2</td><td></td><td>133.503695</td><td>Response Received</td><td>Pass</td><td></td></tr>
+</table></details>
+<details><summary>TC_048 - <span class='pass'>Pass</span></summary>
+<table><tr><th>Step</th><th>Description</th><th>Timestamp</th><th>Type</th><th>Status</th><th>Failure Reason</th></tr>
+<tr><td>1</td><td>SystemNameOrEngineTypeDataIdentifier(22 F1 97)</td><td>135.626120</td><td>Request Sent</td><td></td><td>-</td></tr>
+<tr><td>2</td><td></td><td>135.643478</td><td>Response Received</td><td>Pass</td><td></td></tr>
+</table></details>
+<details><summary>TC_049 - <span class='fail'>Fail</span></summary>
+<table><tr><th>Step</th><th>Description</th><th>Timestamp</th><th>Type</th><th>Status</th><th>Failure Reason</th></tr>
+<tr><td>1</td><td></td><td>137.731554</td><td>Request Sent</td><td></td><td>-</td></tr>
+<tr><td>2</td><td></td><td>137.753329</td><td>Response Received</td><td>Fail</td><td>NRC 31 : requestOutOfRange</td></tr>
+</table></details>
+<details><summary>TC_050 - <span class='pass'>Pass</span></summary>
+<table><tr><th>Step</th><th>Description</th><th>Timestamp</th><th>Type</th><th>Status</th><th>Failure Reason</th></tr>
+<tr><td>1</td><td>TesterPresent(3E 00)</td><td>141.990211</td><td>Request Sent</td><td></td><td>-</td></tr>
+<tr><td>2</td><td></td><td>142.003529</td><td>Response Received</td><td>Pass</td><td></td></tr>
+</table></details>
+</body></html>
