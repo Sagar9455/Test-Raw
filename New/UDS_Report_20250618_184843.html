@@ -1,0 +1,83 @@
+<html><head><title>UDS Diagnostic Report</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body { font-family: Arial; margin: 20px; }
+        .pass { color: green; font-weight: bold; }
+        .fail { color: red; font-weight: bold; }
+        summary { font-weight: bold; cursor: pointer; }
+        table { border-collapse: collapse; width: 100%; margin-top: 10px; }
+        th, td { border: 1px solid #ccc; padding: 8px; }
+        th { background: #f0f0f0; }
+        #chart-container { width: 300px; margin: 20px auto; }
+    </style></head><body>
+    <h1>UDS Diagnostic Report</h1>
+    <div><strong>Generated:</strong> 2025-06-18 18:48:43</div>
+    <div><strong>CAN Log File:</strong> CANLog_Testcase_20250618_184344.asc</div>
+    <div><strong>Total Test Cases:</strong> 3</div>
+    <div class="pass">Passed: 3</div>
+    <div class="fail">Failed: 0</div>
+    <div><strong>Test Duration:</strong> 293.051 seconds</div>
+
+    <div id="chart-container"><canvas id="passFailChart"></canvas></div>
+
+    <script>
+        const ctx = document.getElementById('passFailChart').getContext('2d');
+        new Chart(ctx, {
+            type: 'pie',
+            data: {
+                labels: ['Passed', 'Failed'],
+                datasets: [{
+                    data: [3, 0],
+                    backgroundColor: ['#4CAF50', '#F44336']
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: { position: 'bottom' },
+                    title: { display: true, text: 'Test Case Results' }
+                }
+            }
+        });
+    </script>
+    <hr><br>
+    <details><summary>$TC_ID-001 - <span class='pass'>Pass</span></summary>
+<table><tr><th>Step</th><th>Description</th><th>Timestamp</th><th>Type</th><th>Status</th><th>Failure Reason</th></tr>
+<tr><td>1</td><td>Start default session</td><td>0.020978</td><td>Request Sent</td><td></td><td>-</td></tr>
+<tr><td>2</td><td></td><td>0.035007</td><td>Response Received</td><td>Pass</td><td></td></tr>
+<tr><td>3</td><td>Start default session</td><td>21.736461</td><td>Request Sent</td><td></td><td>-</td></tr>
+<tr><td>4</td><td></td><td>21.750562</td><td>Response Received</td><td>Pass</td><td></td></tr>
+<tr><td>5</td><td>Start default session</td><td>73.199580</td><td>Request Sent</td><td></td><td>-</td></tr>
+<tr><td>6</td><td></td><td>73.218779</td><td>Response Received</td><td>Pass</td><td></td></tr>
+<tr><td>7</td><td>Start default session</td><td>154.555476</td><td>Request Sent</td><td></td><td>-</td></tr>
+<tr><td>8</td><td></td><td>154.575409</td><td>Response Received</td><td>Pass</td><td></td></tr>
+<tr><td>9</td><td>Start default session</td><td>238.973064</td><td>Request Sent</td><td></td><td>-</td></tr>
+<tr><td>10</td><td></td><td>238.993118</td><td>Response Received</td><td>Pass</td><td></td></tr>
+<tr><td>11</td><td>Start default session</td><td>282.231470</td><td>Request Sent</td><td></td><td>-</td></tr>
+<tr><td>12</td><td></td><td>282.252051</td><td>Response Received</td><td>Pass</td><td></td></tr>
+</table></details>
+<details><summary>TC_ID-003 - <span class='pass'>Pass</span></summary>
+<table><tr><th>Step</th><th>Description</th><th>Timestamp</th><th>Type</th><th>Status</th><th>Failure Reason</th></tr>
+<tr><td>1</td><td>Start Extended session</td><td>2.196300</td><td>Request Sent</td><td></td><td>-</td></tr>
+<tr><td>2</td><td></td><td>2.214839</td><td>Response Received</td><td>Pass</td><td></td></tr>
+<tr><td>3</td><td>Start Extended session</td><td>34.641399</td><td>Request Sent</td><td></td><td>-</td></tr>
+<tr><td>4</td><td></td><td>34.659888</td><td>Response Received</td><td>Pass</td><td></td></tr>
+<tr><td>5</td><td>Start Extended session</td><td>108.469471</td><td>Request Sent</td><td></td><td>-</td></tr>
+<tr><td>6</td><td></td><td>108.487190</td><td>Response Received</td><td>Pass</td><td></td></tr>
+<tr><td>7</td><td>Start Extended session</td><td>161.074685</td><td>Request Sent</td><td></td><td>-</td></tr>
+<tr><td>8</td><td></td><td>161.095525</td><td>Response Received</td><td>Pass</td><td></td></tr>
+<tr><td>9</td><td>Start Extended session</td><td>167.614887</td><td>Request Sent</td><td></td><td>-</td></tr>
+<tr><td>10</td><td></td><td>167.635108</td><td>Response Received</td><td>Pass</td><td></td></tr>
+<tr><td>11</td><td>Start Extended session</td><td>176.328192</td><td>Request Sent</td><td></td><td>-</td></tr>
+<tr><td>12</td><td></td><td>176.344850</td><td>Response Received</td><td>Pass</td><td></td></tr>
+<tr><td>13</td><td>Start Extended session</td><td>260.618494</td><td>Request Sent</td><td></td><td>-</td></tr>
+<tr><td>14</td><td></td><td>260.632464</td><td>Response Received</td><td>Pass</td><td></td></tr>
+<tr><td>15</td><td>Start Extended session</td><td>293.048011</td><td>Request Sent</td><td></td><td>-</td></tr>
+<tr><td>16</td><td></td><td>293.071709</td><td>Response Received</td><td>Pass</td><td></td></tr>
+</table></details>
+<details><summary>TC_ID-007 - <span class='pass'>Pass</span></summary>
+<table><tr><th>Step</th><th>Description</th><th>Timestamp</th><th>Type</th><th>Status</th><th>Failure Reason</th></tr>
+<tr><td>1</td><td>Hard reset</td><td>8.713528</td><td>Request Sent</td><td></td><td>-</td></tr>
+<tr><td>2</td><td></td><td>8.724396</td><td>Response Received</td><td>Pass</td><td></td></tr>
+</table></details>
+</body></html>
