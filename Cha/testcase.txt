@@ -74,7 +74,7 @@ PC_ID-008 , Start Extended session,0x10,0x03,0x50
 PC_ID-009 , Tester present,0x3E,0x00,0x7E
 PC_ID-010 , RequestSeed_ASK_Request,0x27,0x11,0x67
 PC_ID-011 , SendKey_ASK_Send,0x27,0x12,0x67
-PC_ID-012 , Start default session,0x10,0x01,0x22
+PC_ID-012 , Start default session,0x10,0x01,0x50
 PC_ID-013 , Start Extended session,0x10,0x03,0x50
 TC_ID-126 , PreCondition: PC_ID-13  Testcase:ECU_Supplier_Code_F1_A1_Write(invalid security),0x2E,0xF1A1,0x33
 TC_ID-127 , PreCondition: PC_ID-13  Testcase:Manufacturing_F1_8B_Write(invalid security),0x2E,0xF18B,0x33
@@ -85,4 +85,4 @@ TC_ID-131 , PreCondition: PC_ID-13  Testcase:HardwareVersionNumber_F1_93_Write(i
 TC_ID-132 , PreCondition: PC_ID-13  Testcase:ECUSoftwareUnit1IVDDataIdentifier_F1_C1_Write(invalid security),0x2E,0xF1C1,0x33
 TC_ID-133 , PreCondition: PC_ID-13  Testcase:SystemSupplierECUSoftwareVersionNumbe_DataIdentifier_F1_95_Write(invalid security),0x2E,0xF195,0x33
 TC_ID-134 , PreCondition: PC_ID-13  Testcase:SystemNameOrEngineTypeDataIdentifier_Write(invalid security),0x2E,0xF197,0x33
-PC_ID-014 , Start default session,0x10,0x01,0x50
+
