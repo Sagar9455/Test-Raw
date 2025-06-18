@@ -1,0 +1,102 @@
+#TC_ID/PC_ID , Testcase Description,Service ID,Sub service ID,Expected response data
+TC_ID-001 , Start default session,0x10,0x01,0x50
+TC_ID-003 , Start Extended session,0x10,0x03,0x50
+TC_ID-004 , Sub function not supported,0x10,0xFF,0x12
+TC_ID-007 , Hard reset,0x11,0x01,0x51
+TC_ID-008 , Soft reset,0x11,0x03,0x51
+TC_ID-009 , Sub function not supported(out ofrange),0x11,0x08,0x12
+TC_ID-012 , Incorrect message length,0x11,0x01 0x01,0x7F
+TC_ID-018 , Subfunction not supported,0x28,8,0x12
+PC_ID-001 , Start Default session,0x10,0x01,0x50
+TC_ID-023 , PreCondition: PC_ID-01 TestcaseP:DTC setting ON wrong Pre-condition (85 01),0x85,0x01,0x7F
+TC_ID-024 , PreCondition: PC_ID-01 Testcase:DTC setting OFF wrong Pre-condition(85 02) ,0x85,0x02,0x7F
+TC_ID-025 , PreCondition: PC_ID-01 Testcase:Service not supported in active session(not valid sub function),0x85,0xFF,0x7F
+TC_ID-026 , PreCondition: PC_ID-01 Testcase:Service not supported in active session(Double sub function),0x85,0xFF 0xFF,0x7F
+PC_ID-002 , Start Extended session,0x10,0x03,0x50
+TC_ID-028 , PreCondition: PC_ID-02 Test case:DTC setting ON wrong Pre-condition (85 01),0x85,0x01,0xC5
+TC_ID-029 , PreCondition: PC_ID-02 Test case:DTC setting OFF wrong Pre-condition(85 02) ,0x85,0x02,0xC5
+TC_ID-030 , PreCondition: PC_ID-02 Test case:Sub function not supported(not valid sub function),0x85,0x08,0x12
+TC_ID-032 , PreCondition: PC_ID-02 Test case:Sub function not supported(not valid sub function),0x85,0x0A,0x12
+TC_ID-034 , Read DTC with Extended session(19 01) ,0x19,0x01 0x01,0x59
+TC_ID-035 , Read DTC Extended session(19 02) ,0x19,0x02 0x01,0x59
+TC_ID-036 , Subfunction not supported,0x19,0x0F 0xFF,0x12
+TC_ID-037 , Subfunction not supported(No Mask),0x19,0x0F,0x12
+TC_ID-038 , Subfunction not supported(properMask improper record),0x19,0x0F 0x01,0x12
+TC_ID-039 , Subfunction not supported(properMask improper record with 0xFF),0x19,0xFF 0x01,0x12
+TC_ID-041 , Request out of range(invalid status Byte),0x19,0x0F 0x01,0x12
+TC_ID-043 , Fault memory clear Extended session(14 0xFFFFFF) ,0x14,0xFFFFFF,0x54
+TC_ID-044 , Conditions not correct(invalid range),0x14,0xFFEEEE,0x22
+PC_ID-003 , Start default session,0x10,0x01,0x50
+TC_ID-046 , PreCondition: PC_ID-03 Testcase:RX_SWIN_F1_EF_Read(Defaultsession),0x22,0xF1EF,0x62
+TC_ID-047 , PreCondition: PC_ID-03 Testcase:B_CAN_Database_Version_F1_00_Read(Defaultsession),0x22,0xF100,0x62
+TC_ID-048 , PreCondition: PC_ID-03 Testcase:Vehicle_Manufacturer_Spare_Part_Number_F1_87_Read(Defaultsession),0x22,0xF187,0x62
+TC_ID-049 , PreCondition: PC_ID-03 Testcase:Manufacturing_F1_8B_Read(Defaultsession),0x22,0xF18B,0x62
+TC_ID-050 , PreCondition: PC_ID-03 Testcase:ECU_Serial_Number_F1_8C_Read(Defaultsession),0x22,0xF18C,0x62
+TC_ID-051 , PreCondition: PC_ID-03 Testcase:Vehicle_Manufacturer_ECU_HW_Number_F1_91_Read(Defaultsession),0x22,0xF191,0x62
+TC_ID-052 , PreCondition: PC_ID-03 Testcase:HardwareVersionNumber_F1_93_Read(Defaultsession),0x22,0xF193,0x62
+TC_ID-053 , PreCondition: PC_ID-03 Testcase:ECUSoftwareUnit1IVDDataIdentifier_F1_C1_Read(Defaultsession),0x22,0xF1C1,0x62
+TC_ID-054 , PreCondition: PC_ID-03 Testcase:SystemSupplierECUSoftwareVersionNumbe_DataIdentifier_F1_95_Read(Defaultsession),0x22,0xF195,0x62
+TC_ID-055 , PreCondition: PC_ID-03 Testcase:Software_Version_for_HKMC_Vehicle_Manufacture_F1_A0_Read(Defaultsession),0x22,0xF1A0,0x62
+TC_ID-056 , PreCondition: PC_ID-03 Testcase:ECU_Supplier_Code_F1_A1_Read(Defaultsession),0x22,0xF1A1,0x62
+TC_ID-057 , PreCondition: PC_ID-03 Testcase:ECU_Software_UNIT_number_F1_B0_Read(Defaultsession),0x22,0xF1B0,0x62
+TC_ID-058 , PreCondition: PC_ID-03 Testcase:ECU_Software_UNIT1_Version_F1_B1_Read(Defaultsession),0x22,0xF1B1,0x62
+TC_ID-059 , PreCondition: PC_ID-03 Testcase:S_W_Version_Dataidentifier_F1_DD_Read(Defaultsession),0x22,0xF1DD,0x62
+TC_ID-060 , PreCondition: PC_ID-03 Testcase:SystemNameOrEngineTypeDataIdentifier_Read(Defaultsession),0x22,0xF197,0x62
+PC_ID-004 , Start Extended session,0x10,0x03,0x50
+TC_ID-061 , PreCondition: PC_ID-04 Testcase:RX_SWIN_F1_EF_Read(Extended session),0x22,0xF1EF,0x62
+TC_ID-062 , PreCondition: PC_ID-04 Testcase:B_CAN_Database_Version_F1_00_Read(Extendedsession),0x22,0xF100,0x62
+TC_ID-063 , PreCondition: PC_ID-04 Testcase:Vehicle_Manufacturer_Spare_Part_Number_F1_87_Read(Extendedsession),0x22,0xF187,0x62
+TC_ID-064 , PreCondition: PC_ID-04 Testcase:Manufacturing_F1_8B_Read(Extendedsession),0x22,0xF18B,0x62
+TC_ID-065 , PreCondition: PC_ID-04 Testcase:ECU_Serial_Number_F1_8C_Read(Extendedsession),0x22,0xF18C,0x62
+TC_ID-066 , PreCondition: PC_ID-04 Testcase:Vehicle_Manufacturer_ECU_HW_Number_F1_91_Read(Extendedsession),0x22,0xF191,0x62
+TC_ID-067 , PreCondition: PC_ID-04 Testcase:HardwareVersionNumber_F1_93_Read(Extendedsession),0x22,0xF193,0x62
+TC_ID-068 , PreCondition: PC_ID-04 Testcase:ECUSoftwareUnit1IVDDataIdentifier_F1_C1_Read(Extendedsession),0x22,0xF1C1,0x62
+TC_ID-069 , PreCondition: PC_ID-04 Testcase:SystemSupplierECUSoftwareVersionNumbe_DataIdentifier_F1_95_Read(Extendedsession),0x22,0xF195,0x62
+TC_ID-070 , PreCondition: PC_ID-04 Testcase:Software_Version_for_HKMC_Vehicle_Manufacture_F1_A0_Read(Extendedsession),0x22,0xF1A0,0x62
+TC_ID-071 , PreCondition: PC_ID-04 Testcase:ECU_Supplier_Code_F1_A1_Read(Extendedsession),0x22,0xF1A1,0x62
+TC_ID-072 , PreCondition: PC_ID-04 Testcase:ECU_Software_UNIT_number_F1_B0_Read(Extendedsession),0x22,0xF1B0,0x62
+TC_ID-073 , PreCondition: PC_ID-04 Testcase:ECU_Software_UNIT1_Version_F1_B1_Read(Extendedsession),0x22,0xF1B1,0x62
+TC_ID-074 , PreCondition: PC_ID-04 Testcase:S_W_Version_Dataidentifier_F1_DD_Read(Extendedsession),0x22,0xF1DD,0x62
+TC_ID-075 , PreCondition: PC_ID-04 Testcase:SystemNameOrEngineTypeDataIdentifier_Read(Extendedsession),0x22,0xF197,0x62
+TC_ID-076 , Request out of range(invalid identifier),0x22,0xF1FF,0x31
+TC_ID-081 , Tester present,0x3E,0x00,0x7E
+TC_ID-083 , sub function not supported(with wrong sub function),0x3E,0xFF,0x12
+PC_ID-005 , Start Default session,0x10,0x01,0x50
+TC_ID-084 , PreCondition: PC_ID-05 Testcase:RequestSeed_Request(invalid session),0x27,0x01,0x7F
+TC_ID-085 , PreCondition: PC_ID-05 Testcase:SendKey_Send(invalid session),0x27,0x02,0x7F
+PC_ID-006 , Start Extended session,0x10,0x03,0x50
+TC_ID-086 , PreCondition: PC_ID-06 Testcase:SendKey_Send(invalid),0x27,0x02,0x7F
+TC_ID-087 , PreCondition: PC_ID-06 Testcase:RequestSeed_Request(invalid ),0x27,0x01,0x12
+TC_ID-088 , Start Extended session,0x10,0x03,0x50
+TC_ID-089 , PreCondition: PC_ID-07 Testcase:RequestSeed_ASK_Request,0x27,0x11,0x67
+TC_ID-090 , PreCondition: PC_ID-07 Testcase:SendKey_ASK_Send,0x27,0x12,0x67
+PC_ID-008 , Start Extended session,0x10,0x03,0x50
+PC_ID-009 , Tester present,0x3E,0x00,0x7E
+PC_ID-010 , RequestSeed_ASK_Request,0x27,0x11,0x67
+PC_ID-011 , SendKey_ASK_Send,0x27,0x12,0x67
+PC_ID-012 , Start default session,0x10,0x01,0x22
+TC_ID-117 , PreCondition: PC_ID-12  Testcase:ECU_Supplier_Code_F1_A1_Write(invalid session),0x2E,0xF1A1,0x22
+TC_ID-118 , PreCondition: PC_ID-12  Testcase:Manufacturing_F1_8B_Write(invalid session),0x2E,0xF18B,0x22
+TC_ID-119 , PreCondition: PC_ID-12  Testcase:ECU_Serial_Number_F1_8C_Write(invalid session),0x2E,0xF18C,0x22
+TC_ID-120 , PreCondition: PC_ID-12  Testcase:Vehicle_Manufacturer_Spare_Part_Number_F1_87_Write(invalid session),0x2E,0xF187,0x22
+TC_ID-121 , PreCondition: PC_ID-12  Testcase:Vehicle_Manufacturer_ECU_HW_Number_F1_91_Write(invalid session),0x2E,0xF191,0x22
+TC_ID-122 , PreCondition: PC_ID-12  Testcase:HardwareVersionNumber_F1_93_Write(invalid session),0x2E,0xF193,0x22
+TC_ID-123 , PreCondition: PC_ID-12  Testcase:ECUSoftwareUnit1IVDDataIdentifier_F1_C1_Write(invalid session),0x2E,0xF1C1,0x22
+TC_ID-124 , PreCondition: PC_ID-12  Testcase:SystemSupplierECUSoftwareVersionNumbe_DataIdentifier_F1_95_Write(invalid session),0x2E,0xF195,0x22
+TC_ID-125 , PreCondition: PC_ID-12  Testcase:SystemNameOrEngineTypeDataIdentifier_Write(invalid session),0x2E,0xF197,0x22
+PC_ID-013 , Start Extended session,0x10,0x03,0x50
+TC_ID-126 , PreCondition: PC_ID-13  Testcase:ECU_Supplier_Code_F1_A1_Write(invalid security),0x2E,0xF1A1,0x22
+TC_ID-127 , PreCondition: PC_ID-13  Testcase:Manufacturing_F1_8B_Write(invalid security),0x2E,0xF18B,0x22
+TC_ID-128 , PreCondition: PC_ID-13  Testcase:ECU_Serial_Number_F1_8C_Write(invalid security),0x2E,0xF18C,0x22
+TC_ID-129 , PreCondition: PC_ID-13  Testcase:Vehicle_Manufacturer_Spare_Part_Number_F1_87_Write(invalid security),0x2E,0xF187,0x22
+TC_ID-130 , PreCondition: PC_ID-13  Testcase:Vehicle_Manufacturer_ECU_HW_Number_F1_91_Write(invalid security),0x2E,0xF191,0x22
+TC_ID-131 , PreCondition: PC_ID-13  Testcase:HardwareVersionNumber_F1_93_Write(invalid security),0x2E,0xF193,0x22
+TC_ID-132 , PreCondition: PC_ID-13  Testcase:ECUSoftwareUnit1IVDDataIdentifier_F1_C1_Write(invalid security),0x2E,0xF1C1,0x22
+TC_ID-133 , PreCondition: PC_ID-13  Testcase:SystemSupplierECUSoftwareVersionNumbe_DataIdentifier_F1_95_Write(invalid security),0x2E,0xF195,0x22
+TC_ID-134 , PreCondition: PC_ID-13  Testcase:SystemNameOrEngineTypeDataIdentifier_Write(invalid security),0x2E,0xF197,0x7F
+PC_ID-014 , Start default session,0x10,0x01,0x50
+TC_ID-135 , PreCondition: PC_ID-14  Testcase:Control output with valid control parameter(invalid session),0x2F,0xF1 0x95 0x03 0x01,0x7F
+TC_ID-136 , Control input(invalid session),0x2F,0xF1 0x95 0x03 0x00,0x7F
+TC_ID-137 , Invalid control parameter(invalid session),0x2F,0xF1 0x95 0xFF,0x7F
+TC_ID-138 , Control in invalid session(invalid session),0x2F,0xF1 0x95 0x03 0x01,0x7F
+PC_ID-015 , Start Extended session,0x10,0x03,0x50
