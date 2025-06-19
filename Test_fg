@@ -1,95 +1,308 @@
-import datetime
-from html import escape
+2025-06-19 16:04:08,760 [DEBUG] Bound socket.
+2025-06-19 16:04:08,764 [DEBUG] Given rxfn is considered blocking
+2025-06-19 16:04:08,766 [ERROR] Exception during UDS handshake
+Traceback (most recent call last):
+  File "/home/mobase/Pld/udsoncan/input/application/main.py", line 85, in initialize_dependencies
+    temp_uds = uds_client.UDSClient(self.config)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/mobase/Pld/udsoncan/input/drivers/uds_client.py", line 89, in __init__
+    filters = self.get_can_filters()
+              ^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/mobase/Pld/udsoncan/input/drivers/uds_client.py", line 103, in get_can_filters
+    tx_id_phys = int(addr_modes_cfg.get("physical", {}).get("tx_id", "0"), 16)
+                     ^^^^^^^^^^^^^^
+NameError: name 'addr_modes_cfg' is not defined
+2025-06-19 16:04:10,871 [INFO] Bringing up CAN interface can0...
+2025-06-19 16:04:11,031 [INFO] CAN interface can0 successfully brought up.
+###
+class UDSClient:
+    def __init__(self, config):
+        can_cfg = config["uds"]["can"]
+        isotp_cfg = config["uds"]["isotp"]
+        timing_cfg = config["uds"]["timing"]
+        self.uds_config = config["uds"]
 
-def generate_html_report(messages_by_tc, output_path, asc_filename, start_ts, end_ts, ecu_info_data=None):
-    total = len(messages_by_tc)
-    passed = sum(1 for tc in messages_by_tc.values() if all(msg["status"] == "Pass" for msg in tc))
-    failed = total - passed
-    duration = end_ts - start_ts
-    generated_time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        self.context = {}
 
-    html = f"""<html><head><title>UDS Diagnostic Report</title>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <style>
-        body {{ font-family: Arial; margin: 20px; }}
-        .pass {{ color: green; font-weight: bold; }}
-        .fail {{ color: red; font-weight: bold; }}
-        summary {{ font-weight: bold; cursor: pointer; }}
-        table {{ border-collapse: collapse; width: 100%; margin-top: 10px; }}
-        th, td {{ border: 1px solid #ccc; padding: 8px; }}
-        th {{ background: #f0f0f0; }}
-        #chart-container {{ width: 300px; margin: 20px auto; }}
-    </style></head><body>
+       
+        self.info_dids = self.uds_config.get("ecu_information_dids", {})
+        self.decode_dids = self.uds_config.get("decoding_dids", {})
+        self.write_data_dict = self.uds_config.get("write_data", {})
+        self.step_delays=self.uds_config.get("delays",{})
+        self.default_delay=self.step_delays.get("default",0.5)
+
+       
+        self.client_config = default_client_config.copy()
+        self.client_config["p2_timeout"] = timing_cfg["p2_client"] / 1000.0
+        self.client_config["p2_star_timeout"] = timing_cfg["p2_extended_client"] / 1000.0
+        self.client_config["s3_client_timeout"] = timing_cfg["s3_client"] / 1000.0
+        self.client_config["exception_on_negative_response"] = False
+        self.client_config["exception_on_unexpected_response"] = False
+        self.client_config["exception_on_invalid_response"] = False
+        self.client_config["use_server_timing"] = False
+
+        
+        self.client_config["data_identifiers"] = {
+            int(did_str, 16): SafeAsciiCodec(length)
+            for did_str, length in self.decode_dids.items()
+        }
+        self.client_config["write_data"] = {
+            int(did_str, 16): data_str
+            for did_str, data_str in self.write_data_dict.items()
+        }
+
+        
+        addr_modes_cfg = self.uds_config["addressing_modes"]
+        self.physical_conn = self._create_connection(addr_modes_cfg.get("physical"), can_cfg, isotp_cfg, "physical")
+        self.functional_conn = self._create_connection(addr_modes_cfg.get("functional"), can_cfg, isotp_cfg, "functional")
+
+        self.active_conn = self.physical_conn
+        self.active_mode = "physical"
+
+        
+        self.allowed_ids = list({
+            int(addr_modes_cfg.get("physical", {}).get("tx_id", "0"), 16),
+            int(addr_modes_cfg.get("physical", {}).get("rx_id", "0"), 16),
+            int(addr_modes_cfg.get("functional", {}).get("tx_id", "0"), 16),
+            int(addr_modes_cfg.get("functional", {}).get("rx_id", "0"), 16),
+        })
+
+        self.allowed_tx_ids = [
+                  int(addr_modes_cfg.get("physical", {}).get("tx_id", "0"), 16),
+                  int(addr_modes_cfg.get("functional", {}).get("tx_id", "0"), 16)
+              ]
+
+        self.allowed_rx_ids = [
+             int(addr_modes_cfg.get("physical", {}).get("rx_id", "0"), 16),
+             int(addr_modes_cfg.get("functional", {}).get("rx_id", "0"), 16)
+         ]
+
+
+        filters = self.get_can_filters()
+        self.project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
+        log_dir = os.path.join(self.project_root, 'output', 'can_logs')
+        self.can_logger = CANLogger(channel=can_cfg["channel"], interface=can_cfg["interface"], log_dir=log_dir,filters=filters)
+
+
+    def get_can_filters(self):
+        filters_enabled = self.uds_config.get("logging", {}).get("filters", False)
+        
+        if not filters_enabled: 
+            logging.info("CANLogger: Logging ALL CAN messages (no filters)")
+            return None
+
+        
+        tx_id_phys = int(addr_modes_cfg.get("physical", {}).get("tx_id", "0"), 16)
+        rx_id_phys = int(addr_modes_cfg.get("physical", {}).get("rx_id", "0"), 16)
+
+        tx_id_func = int(addr_modes_cfg.get("functional", {}).get("tx_id", "0"), 16)
+        rx_id_func = int(addr_modes_cfg.get("functional", {}).get("rx_id", "0"), 16)
+
+        filters = [
+            {"can_id": tx_id_phys, "can_mask": 0x7FF, "extended": False},
+            {"can_id": rx_id_phys, "can_mask": 0x7FF, "extended": False},
+            {"can_id": tx_id_func, "can_mask": 0x7FF, "extended": False},
+            {"can_id": rx_id_func, "can_mask": 0x7FF, "extended": False}
+        ]
+
+        logging.info("CANLogger: Logging only UDS traffic (tx/rx physical+functional)")
+        return filters
     
-    <!-- CENTERED TITLE -->
-    <div style="text-align: center;">
-        <h1>UDS Diagnostic Report</h1>
-    </div>
     
-    <!-- FLEX ROW -->
-    <div style="display: flex; justify-content: space-between; margin-bottom: 20px; align-items: flex-start;">
+    def _create_connection(self, addr_cfg, can_cfg, isotp_cfg, mode_name):
+        if not addr_cfg:
+            print(f"No config found for {mode_name} addressing, skipping.")
+            return None
 
-        <!-- LEFT COLUMN -->
-        <div style="flex: 1; text-align: left;">
-            <p><strong>Generated:</strong> {generated_time}</p>
-            <p><strong>CAN Log File:</strong> {asc_filename}</p>
-            <p><strong>Total Test Cases:</strong> {total}</p>
-            <p class="pass"><strong>Passed:</strong> {passed}</p>
-            <p class="fail"><strong>Failed:</strong> {failed}</p>
-            <p><strong>Test Duration:</strong> {duration:.3f} seconds</p>
-        </div>
+        tx_id = int(addr_cfg["tx_id"], 16)
+        rx_id = int(addr_cfg["rx_id"], 16)
+        is_extended = addr_cfg.get("is_extended", False)
 
-        <!-- RIGHT COLUMN (ECU INFO) -->
-        <div style="flex: 0 0 auto; text-align: left; margin-left: 40px;">
-            <p><strong>ECU Information:</strong></p>
-    """
+        address = isotp.Address(
+            addressing_mode=isotp.AddressingMode.Normal_29bits if is_extended else isotp.AddressingMode.Normal_11bits,
+            txid=tx_id,
+            rxid=rx_id
+        )
 
-    if ecu_info_data:
-        for key, value in ecu_info_data.items():
-            html += f"<p>{escape(key)}: {escape(value)}</p>"
+        rx_mask = 0x1FFFFFFF if is_extended else 0x7FF
+        bus = can.interface.Bus(
+            channel=can_cfg["channel"],
+            bustype=can_cfg["interface"],
+            fd=can_cfg.get("can_fd", True),
+            can_filters=[{
+                "can_id": rx_id,
+                "can_mask": rx_mask,
+                "extended": is_extended
+            }]
+        )
 
-    html += "</div></div>"
+        stack = isotp.CanStack(bus=bus, address=address, params=isotp_cfg)
+        conn = PythonIsoTpConnection(stack)
 
-    html += """
-    <div id="chart-container"><canvas id="passFailChart"></canvas></div>
-    <script>
-        const ctx = document.getElementById('passFailChart').getContext('2d');
-        new Chart(ctx, {
-            type: 'pie',
-            data: {
-                labels: ['Passed', 'Failed'],
-                datasets: [{
-                    data: [%d, %d],
-                    backgroundColor: ['#4CAF50', '#F44336']
-                }]
-            },
-            options: {
-                responsive: true,
-                plugins: {
-                    legend: { position: 'bottom' },
-                    title: { display: true, text: 'Test Case Results' }
-                }
-            }
-        });
-    </script>
-    <hr><br>
-    """ % (passed, failed)
+        return {
+            "conn": conn,
+            "client_config": self.client_config,
+            "mode_name": mode_name
+        }
+    def switch_mode(self, mode):
+           mode = mode.lower()
+           if mode == "physical" and self.physical_conn is not None:
+               self.active_conn = self.physical_conn
+               self.active_mode = "physical"
+               #print("Switched to physical addressing")
+           elif mode == "functional" and self.functional_conn is not None:
+               self.active_conn = self.functional_conn
+               self.active_mode = "functional"
+               #print("Switched to functional addressing")
+           else:
+               raise ValueError(f"Unsupported or unconfigured addressing mode: {mode}")
+    
 
-    # ----- ADD YOUR TEST CASE SECTION HERE -----
-    # Example:
-    for tc_id, steps in messages_by_tc.items():
-        tc_status = "Pass" if all(msg["status"] == "Pass" for msg in steps) else "Fail"
-        tc_class = "pass" if tc_status == "Pass" else "fail"
-        html += f"<details><summary class='{tc_class}'>{escape(tc_id)} - {tc_status}</summary>\n"
-        html += "<table><tr><th>Timestamp</th><th>Step Description</th><th>Status</th><th>Failure Reason</th></tr>\n"
-        for msg in steps:
-            html += f"<tr><td>{escape(msg['timestamp'])}</td><td>{escape(msg['step_desc'])}</td>"
-            html += f"<td>{escape(msg['status'])}</td><td>{escape(msg.get('failure_reason','-'))}</td></tr>\n"
-        html += "</table></details>\n"
+    def check_disk_space(self, min_required_mb=50):
+        total, used, free = shutil.disk_usage("/")
+        free_mb = free // (1024 * 1024)  # Convert to MB
+        return (free_mb >= min_required_mb, free_mb)
 
-    html += "</body></html>"
+    def start_logging(self, log_name_suffix=""):
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        filename = f"CANLog_{log_name_suffix}_{timestamp}.asc"
+        self.can_logger.start(filename=filename)
 
-    with open(output_path, "w", encoding="utf-8") as f:
-        f.write(html)
+    def stop_logging(self):
+        self.can_logger.stop()
 
-    print(f"✅ HTML report generated: {output_path}")
+
+                    
+    def timestamp_log(self):
+        timestamp = datetime.now().strftime("%H:%M:%S.%f")[:-3]
+        return timestamp
+
+    def check_memory(self, oled):
+        min_required = 50
+        enough_space, free_mb = self.check_disk_space(min_required_mb=min_required)
+        if not enough_space:
+            warning_msg = f"Low Storage!\nOnly {free_mb}MB left.\nNeed {min_required}MB."
+            oled.display_centered_text(warning_msg)
+            logging.warning(warning_msg)
+            time.sleep(4)
+            return False
+
+        oled.display_centered_text(f"Storage OK\nFree: {free_mb} MB")
+        logging.info(f"Storage check passed: {free_mb} MB available")
+        time.sleep(2)
+        return True
+
+    def try_basic_communication(self):
+        try:
+            with Client(self.active_conn["conn"], request_timeout=2, config=self.client_config) as client:
+                response = client.tester_present()
+                return response.positive
+        except Exception as e:
+            logging.warning(f"Tester Present failed: {e}")
+            return False
+###
+  "uds": {
+    
+    "logging": {
+    "filters": "True"
+       },   
+    "address
+    
+    
+  ###
+  import os
+import can
+import logging
+from datetime import datetime
+from can.io.asc import ASCWriter
+
+class CANLogger:
+    def __init__(self, channel='can0', interface='socketcan', can_fd=False, filters=None,log_dir='/home/mobase/UDS_Tool_Raspberry_Pi/MKBD/udsoncan/output/can_logs'):
+        """
+        Initializes the CANLogger with the provided CAN interface settings
+        and log directory.
+        """
+        self.channel = channel
+        self.interface = interface
+        self.can_fd = can_fd
+        self.log_dir = log_dir
+        self.filters = filters
+
+        self.bus = None
+        self.notifier = None
+        self.writer = None
+        self.file = None
+        self.log_path = None
+
+    def start(self,filename=None):
+        """
+        Start CAN bus logging with ASCWriter attached to notifier.
+        Writes ASC log header manually to match Vector format.
+        """
+        if self.notifier or self.writer:
+            self.stop()
+
+        os.makedirs(self.log_dir, exist_ok=True)
+
+        # Create timestamped log file
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        #self.log_path = os.path.join(self.log_dir, f"can_log_{timestamp}.asc")
+        self.log_path = os.path.join(self.log_dir, filename)
+
+        try:
+            # Open log file for writing
+            self.file = open(self.log_path, 'w')
+            '''
+            # Write ASC-style header
+            self.file.write(f'date {datetime.now().strftime("%Y-%m-%d")}\n')
+            self.file.write('base hex timestamps absolute\n')
+            self.file.write('comment: Logging CAN communication\n')
+            self.file.write('begin of logfile\n')
+            '''
+
+            # Create CAN bus interface
+            self.bus = can.interface.Bus(channel=self.channel, bustype=self.interface,can_filters=self.filters)
+
+            # Attach ASCWriter to bus via Notifier
+            self.writer = ASCWriter(self.file)
+            self.notifier = can.Notifier(self.bus, [self.writer])
+
+            logging.info(f"CAN logging started: {self.log_path}")
+
+        except Exception as e:
+            logging.error(f"[CANLogger] Failed to start: {e}")
+
+    def stop(self):
+        """
+        Stops logging and writes ASC footer.
+        """
+        try:
+            if self.notifier:
+                self.notifier.stop()
+
+            if self.writer:
+                self.writer.stop()
+
+            if self.file:
+                self.file.flush()
+                self.file.write('end of logfile\n')
+                self.file.close()
+
+            logging.info(f"CAN logging stopped: {self.log_path}")
+            print(f"[CANLogger] Log file saved to: {self.log_path}")
+
+        except Exception as e:
+            logging.error(f"[CANLogger] Error during stop: {e}")
+
+        # Reset
+        self.bus = None
+        self.notifier = None
+        self.writer = None
+        self.file = None
+
+    def get_log_path(self):
+        """
+        Returns the path to the current log file.
+        """
+        return self.log_path
+  
