@@ -286,7 +286,7 @@ def generate_html_report(messages_by_tc, output_path, asc_filename, start_ts, en
 
     # ECU INFO BLOCK (right side)
     if ecu_info_data:
-        html += "<div style='float: right; text-align: left;'><h3>ECU Information:</h3>"
+        html += "<div style='position: absolute; top: 20px; right: 30px; text-align: left;'><h3>ECU Information:</h3>"
         for key, value in ecu_info_data.items():
             html += f"<div>{escape(key)}: {escape(value)}</div>"
         html += "</div>"
