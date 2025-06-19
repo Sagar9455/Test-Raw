@@ -1,10 +1,10 @@
 #TC_ID/PC_ID , Testcase Description,Service ID,Sub service ID,Expected response data
 TC_ID-001 , Start default session,0x10,0x01,0x50
 TC_ID-003 , Start Extended session,0x10,0x03,0x50
-TC_ID-004 , Sub function not supported,0x10,0xFF,0x12
+TC_ID-004 , Sub function not supported(10 FF),0x10,0xFF,0x12
 TC_ID-007 , Hard reset,0x11,0x01,0x51
 TC_ID-008 , Soft reset,0x11,0x03,0x51
-TC_ID-009 , Sub function not supported(out ofrange),0x11,0x08,0x12
+TC_ID-009 , Sub function not supported(out ofrange)(11 08) ,0x11,0x08,0x12
 TC_ID-012 , Incorrect message length,0x11,0x01 0x01,0x7F
 TC_ID-018 , Subfunction not supported,0x28,8,0x12
 PC_ID-001 , Start Default session,0x10,0x01,0x50
@@ -24,8 +24,8 @@ TC_ID-037 , Subfunction not supported(No Mask),0x19,0x0F,0x12
 TC_ID-038 , Subfunction not supported(properMask improper record),0x19,0x0F 0x01,0x12
 TC_ID-039 , Subfunction not supported(properMask improper record with 0xFF),0x19,0xFF 0x01,0x12
 TC_ID-041 , Request out of range(invalid status Byte),0x19,0x0F 0x01,0x12
-TC_ID-043 , Fault memory clear Extended session(14 0xFFFFFF) ,0x14,0xFFFFFF,0x54
-TC_ID-044 , Conditions not correct(invalid range),0x14,0xFFEEEE,0x22
+TC_ID-043 , Fault memory clear Extended session(0x14 0xFFFFFF) ,0x14,0xFFFFFF,0x54
+TC_ID-044 , Conditions not correct(invalid range)(0x14 0xFFEEEE) ,0x14,0xFFEEEE,0x22
 PC_ID-003 , Start default session,0x10,0x01,0x50
 TC_ID-046 , PreCondition: PC_ID-03 Testcase:RX_SWIN_F1_EF_Read(Defaultsession),0x22,0xF1EF,0x62
 TC_ID-047 , PreCondition: PC_ID-03 Testcase:B_CAN_Database_Version_F1_00_Read(Defaultsession),0x22,0xF100,0x62
@@ -73,14 +73,14 @@ TC_ID-090 , PreCondition: PC_ID-07 Testcase:SendKey_ASK_Send,0x27,0x12,0x67
 PC_ID-008 , Start Extended session,0x10,0x03,0x50
 PC_ID-009 , RequestSeed_ASK_Request,0x27,0x11,0x67
 PC_ID-010 , SendKey_ASK_Send,0x27,0x12,0x67
-PC_ID-011 , Start default session,0x10,0x01,0x50
+PC_ID-011 , Start default session,0x10,0x01,0x22
 PC_ID-012 , Start Extended session,0x10,0x03,0x50
-TC_ID-126 , PreCondition: PC_ID-13  Testcase:ECU_Supplier_Code_F1_A1_Write(invalid security),0x2E,0xF1A1,0x33
-TC_ID-127 , PreCondition: PC_ID-13  Testcase:Manufacturing_F1_8B_Write(invalid security),0x2E,0xF18B,0x33
-TC_ID-128 , PreCondition: PC_ID-13  Testcase:ECU_Serial_Number_F1_8C_Write(invalid security),0x2E,0xF18C,0x33
-TC_ID-129 , PreCondition: PC_ID-13  Testcase:Vehicle_Manufacturer_Spare_Part_Number_F1_87_Write(invalid security),0x2E,0xF187,0x33
-TC_ID-130 , PreCondition: PC_ID-13  Testcase:Vehicle_Manufacturer_ECU_HW_Number_F1_91_Write(invalid security),0x2E,0xF191,0x33
-TC_ID-131 , PreCondition: PC_ID-13  Testcase:HardwareVersionNumber_F1_93_Write(invalid security),0x2E,0xF193,0x33
-TC_ID-132 , PreCondition: PC_ID-13  Testcase:ECUSoftwareUnit1IVDDataIdentifier_F1_C1_Write(invalid security),0x2E,0xF1C1,0x33
-TC_ID-133 , PreCondition: PC_ID-13  Testcase:SystemSupplierECUSoftwareVersionNumbe_DataIdentifier_F1_95_Write(invalid security),0x2E,0xF195,0x33
-TC_ID-134 , PreCondition: PC_ID-13  Testcase:SystemNameOrEngineTypeDataIdentifier_Write(invalid security),0x2E,0xF197,0x33
+TC_ID-126 , PreCondition: PC_ID-12  Testcase:ECU_Supplier_Code_F1_A1_Write(invalid security),0x2E,0xF1A1,0x22
+TC_ID-127 , PreCondition: PC_ID-12  Testcase:Manufacturing_F1_8B_Write(invalid security),0x2E,0xF18B,0x22
+TC_ID-128 , PreCondition: PC_ID-12  Testcase:ECU_Serial_Number_F1_8C_Write(invalid security),0x2E,0xF18C,0x22
+TC_ID-129 , PreCondition: PC_ID-12  Testcase:Vehicle_Manufacturer_Spare_Part_Number_F1_87_Write(invalid security),0x2E,0xF187,0x22
+TC_ID-130 , PreCondition: PC_ID-12  Testcase:Vehicle_Manufacturer_ECU_HW_Number_F1_91_Write(invalid security),0x2E,0xF191,0x22
+TC_ID-131 , PreCondition: PC_ID-12  Testcase:HardwareVersionNumber_F1_93_Write(invalid security),0x2E,0xF193,0x22
+TC_ID-132 , PreCondition: PC_ID-12  Testcase:ECUSoftwareUnit1IVDDataIdentifier_F1_C1_Write(invalid security),0x2E,0xF1C1,0x22
+TC_ID-133 , PreCondition: PC_ID-12  Testcase:SystemSupplierECUSoftwareVersionNumbe_DataIdentifier_F1_95_Write(invalid security),0x2E,0xF195,0x22
+TC_ID-134 , PreCondition: PC_ID-12  Testcase:SystemNameOrEngineTypeDataIdentifier_Write(invalid security),0x2E,0xF197,0x7F
