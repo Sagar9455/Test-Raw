@@ -293,30 +293,30 @@ def generate_html_report(messages_by_tc, output_path, asc_filename, start_ts, en
 
     html += """
     <div id="chart-container"><canvas id="passFailChart"></canvas></div>
+
     <script>
         const ctx = document.getElementById('passFailChart').getContext('2d');
-        new Chart(ctx, {
+        new Chart(ctx, {{
             type: 'pie',
-            data: {
+            data: {{
                 labels: ['Passed', 'Failed'],
-                datasets: [{
-                    data: [%d, %d],
+                datasets: [{{
+                    data: [{passed}, {failed}],
                     backgroundColor: ['#4CAF50', '#F44336']
-                }]
-            },
-            options: {
+                }}]
+            }},
+            options: {{
                 responsive: true,
-                plugins: {
-                    legend: { position: 'bottom' },
-                    title: { display: true, text: 'Test Case Results' }
-                }
-            }
-        });
+                plugins: {{
+                    legend: {{ position: 'bottom' }},
+                    title: {{ display: true, text: 'Test Case Results' }}
+                }}
+            }}
+        }});
     </script>
     <hr><br>
-    """ % (passed, failed)
+    """
 
-    # Test Case Details
     for tc_id, steps in messages_by_tc.items():
         status = steps[0]['status']
         status_class = 'pass' if status == 'Pass' else 'fail'
