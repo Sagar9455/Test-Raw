@@ -1,3 +1,36 @@
+for step in steps:
+    try:
+        tc_id, step_desc, service, subfunc, expected, *rest = step
+        if service != "22":
+            continue
+
+        try:
+            did = int(subfunc, 16)
+        except ValueError as ve:
+            logging.error(f"[ECU Info] Invalid subfunc '{subfunc}' in {tc_id} step '{step_desc}': {ve}")
+            continue
+
+        # Now safe to send readDataByIdentifier
+        response = client.read_data_by_identifier(did)
+        data = response.service_data.values[did]
+
+        logging.info(f"[ECU Info] DID 0x{did:X}: {data.hex()}")
+
+        # Add to result
+        ecu_info[f"{tc_id} - {step_desc}"] = data.hex()
+
+        if oled:
+            oled.display_centered_text(f"{tc_id}\nDID: 0x{did:X}\nOK")
+
+        time.sleep(0.1)
+
+    except Exception as e:
+        logging.error(f"[ECU Info] Error processing step in {tc_id}: {e}")
+        if oled:
+            oled.display_centered_text(f"Error:\n{str(e)}")
+        continue
+###
+
 import can
 import socket
 import shutil 
