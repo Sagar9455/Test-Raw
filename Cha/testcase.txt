@@ -71,10 +71,10 @@ TC_ID-088 , Start Extended session,0x10,0x03,0x50
 TC_ID-089 , PreCondition: PC_ID-07  Testcase:RequestSeed_ASK_Request,0x27,0x11,0x67
 TC_ID-090 , PreCondition: PC_ID-07 Testcase:SendKey_ASK_Send,0x27,0x12,0x67
 PC_ID-008 , Start Extended session,0x10,0x03,0x50
-PC_ID-010 , RequestSeed_ASK_Request,0x27,0x11,0x67
-PC_ID-011 , SendKey_ASK_Send,0x27,0x12,0x67
-PC_ID-012 , Start default session,0x10,0x01,0x50
-PC_ID-013 , Start Extended session,0x10,0x03,0x50
+PC_ID-009 , RequestSeed_ASK_Request,0x27,0x11,0x67
+PC_ID-010 , SendKey_ASK_Send,0x27,0x12,0x67
+PC_ID-011 , Start default session,0x10,0x01,0x50
+PC_ID-012 , Start Extended session,0x10,0x03,0x50
 TC_ID-126 , PreCondition: PC_ID-13  Testcase:ECU_Supplier_Code_F1_A1_Write(invalid security),0x2E,0xF1A1,0x33
 TC_ID-127 , PreCondition: PC_ID-13  Testcase:Manufacturing_F1_8B_Write(invalid security),0x2E,0xF18B,0x33
 TC_ID-128 , PreCondition: PC_ID-13  Testcase:ECU_Serial_Number_F1_8C_Write(invalid security),0x2E,0xF18C,0x33
