@@ -1,0 +1,187 @@
+"logging": {
+    "filters": "only_udsoncan"
+}
+
+
+
+import os
+import can
+import logging
+from datetime import datetime
+from can.io.asc import ASCWriter
+
+class CANLogger:
+    def __init__(self, channel='can0', interface='socketcan', can_fd=False, 
+                 log_dir='/home/mobase/UDS_Tool_Raspberry_Pi/MKBD/udsoncan/output/can_logs', 
+                 filters=None):
+        self.channel = channel
+        self.interface = interface
+        self.can_fd = can_fd
+        self.log_dir = log_dir
+        self.filters = filters
+
+        self.bus = None
+        self.notifier = None
+        self.writer = None
+        self.file = None
+        self.log_path = None
+
+    def start(self, filename=None):
+        if self.notifier or self.writer:
+            self.stop()
+
+        os.makedirs(self.log_dir, exist_ok=True)
+
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        self.log_path = os.path.join(self.log_dir, filename)
+
+        try:
+            self.file = open(self.log_path, 'w')
+
+            self.bus = can.interface.Bus(
+                channel=self.channel,
+                bustype=self.interface,
+                can_filters=self.filters
+            )
+
+            self.writer = ASCWriter(self.file)
+            self.notifier = can.Notifier(self.bus, [self.writer])
+
+            logging.info(f"CAN logging started: {self.log_path}")
+
+        except Exception as e:
+            logging.error(f"[CANLogger] Failed to start: {e}")
+
+    def stop(self):
+        try:
+            if self.notifier:
+                self.notifier.stop()
+
+            if self.writer:
+                self.writer.stop()
+
+            if self.file:
+                self.file.flush()
+                self.file.write('end of logfile\n')
+                self.file.close()
+
+            logging.info(f"CAN logging stopped: {self.log_path}")
+            print(f"[CANLogger] Log file saved to: {self.log_path}")
+
+        except Exception as e:
+            logging.error(f"[CANLogger] Error during stop: {e}")
+
+        self.bus = None
+        self.notifier = None
+        self.writer = None
+        self.file = None
+
+    def get_log_path(self):
+        return self.log_path
+#####
+
+import os
+import logging
+from drivers.can_logger import CANLogger
+from drivers.safe_ascii_codec import SafeAsciiCodec
+from udsoncan.client import Client
+from udsoncan.configs import default_client_config
+
+class UDSClient:
+    def __init__(self, config):
+        self.config = config
+
+        can_cfg = config["uds"]["can"]
+        isotp_cfg = config["uds"]["isotp"]
+        timing_cfg = config["uds"]["timing"]
+        self.uds_config = config["uds"]
+
+        self.context = {}
+
+        self.info_dids = self.uds_config.get("ecu_information_dids", {})
+        self.decode_dids = self.uds_config.get("decoding_dids", {})
+        self.write_data_dict = self.uds_config.get("write_data", {})
+        self.step_delays = self.uds_config.get("delays", {})
+        self.default_delay = self.step_delays.get("default", 0.5)
+
+        self.client_config = default_client_config.copy()
+        self.client_config["p2_timeout"] = timing_cfg["p2_client"] / 1000.0
+        self.client_config["p2_star_timeout"] = timing_cfg["p2_extended_client"] / 1000.0
+        self.client_config["s3_client_timeout"] = timing_cfg["s3_client"] / 1000.0
+        self.client_config["exception_on_negative_response"] = False
+        self.client_config["exception_on_unexpected_response"] = False
+        self.client_config["exception_on_invalid_response"] = False
+        self.client_config["use_server_timing"] = False
+
+        self.client_config["data_identifiers"] = {
+            int(did_str, 16): SafeAsciiCodec(length)
+            for did_str, length in self.decode_dids.items()
+        }
+        self.client_config["write_data"] = {
+            int(did_str, 16): data_str
+            for did_str, data_str in self.write_data_dict.items()
+        }
+
+        addr_modes_cfg = self.uds_config["addressing_modes"]
+        self.physical_conn = self._create_connection(addr_modes_cfg.get("physical"), can_cfg, isotp_cfg, "physical")
+        self.functional_conn = self._create_connection(addr_modes_cfg.get("functional"), can_cfg, isotp_cfg, "functional")
+
+        self.active_conn = self.physical_conn
+        self.active_mode = "physical"
+
+        self.allowed_ids = list({
+            int(addr_modes_cfg.get("physical", {}).get("tx_id", "0"), 16),
+            int(addr_modes_cfg.get("physical", {}).get("rx_id", "0"), 16),
+            int(addr_modes_cfg.get("functional", {}).get("tx_id", "0"), 16),
+            int(addr_modes_cfg.get("functional", {}).get("rx_id", "0"), 16),
+        })
+
+        self.allowed_tx_ids = [
+            int(addr_modes_cfg.get("physical", {}).get("tx_id", "0"), 16),
+            int(addr_modes_cfg.get("functional", {}).get("tx_id", "0"), 16)
+        ]
+
+        self.allowed_rx_ids = [
+            int(addr_modes_cfg.get("physical", {}).get("rx_id", "0"), 16),
+            int(addr_modes_cfg.get("functional", {}).get("rx_id", "0"), 16)
+        ]
+
+        # Prepare CANLogger
+        filters = self._get_can_filters()
+
+        self.project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
+        log_dir = os.path.join(self.project_root, 'output', 'can_logs')
+
+        self.can_logger = CANLogger(channel=can_cfg["channel"], 
+                                    interface=can_cfg["interface"], 
+                                    log_dir=log_dir, 
+                                    filters=filters)
+
+    def _get_can_filters(self):
+        logging_mode = self.config.get("logging", {}).get("filters", "only_udsoncan").lower()
+
+        if logging_mode == "all":
+            logging.info("CANLogger: Logging ALL CAN messages (no filters)")
+            return None
+
+        addressing_modes = self.config["uds"]["addressing_modes"]
+
+        tx_id_phys = int(addressing_modes["physical"]["tx_id"], 16)
+        rx_id_phys = int(addressing_modes["physical"]["rx_id"], 16)
+
+        tx_id_func = int(addressing_modes["functional"]["tx_id"], 16)
+        rx_id_func = int(addressing_modes["functional"]["rx_id"], 16)
+
+        filters = [
+            {"can_id": tx_id_phys, "can_mask": 0x7FF, "extended": False},
+            {"can_id": rx_id_phys, "can_mask": 0x7FF, "extended": False},
+            {"can_id": tx_id_func, "can_mask": 0x7FF, "extended": False},
+            {"can_id": rx_id_func, "can_mask": 0x7FF, "extended": False}
+        ]
+
+        logging.info("CANLogger: Logging only UDS traffic (tx/rx physical+functional)")
+        return filters
+
+    def _create_connection(self, addr_mode_cfg, can_cfg, isotp_cfg, mode_name):
+        # Your existing connection logic (unchanged)
+        pass
