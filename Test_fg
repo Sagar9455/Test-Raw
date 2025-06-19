@@ -1,16 +1,10 @@
-generate_report(
-            asc_file_path=full_log_path,
-            txt_file_path=testcase_file_path,
-            output_html_file=report_path,
-            allowed_tx_ids=self.allowed_tx_ids,
-            allowed_rx_ids =self.allowed_rx_ids,
-            ecu_info_data = ecu_info_data
-        )
 import os
 import re
 import datetime
 from collections import defaultdict
 from html import escape
+
+# =================== DESCRIPTION MAP ====================
 
 def load_description_map(txt_file_path):
     desc_map = {}
@@ -33,6 +27,8 @@ def load_description_map(txt_file_path):
                 desc_map[key] = []
             desc_map[key].append(value)
     return desc_map
+
+# ==================== PARSE FUNCTIONS =====================
 
 def parse_data_bytes(line):
     match = re.search(r'd\s+\d+\s+((?:[0-9A-Fa-f]{2}\s+)+)', line)
@@ -161,6 +157,8 @@ def parse_line(line):
         }
     return None
 
+# ================== ASC FILE PARSER =======================
+
 def parse_asc_file(asc_file_path, allowed_tx_ids, allowed_rx_ids):
     messages_by_tc = defaultdict(list)
     current_request = None
@@ -256,12 +254,9 @@ def parse_asc_file(asc_file_path, allowed_tx_ids, allowed_rx_ids):
 
     return messages_by_tc, start_ts or 0, end_ts or 0
 
+# ================ HTML REPORT GENERATOR =================
 
-
-def generate_html_report(messages_by_tc, output_path, asc_filename, start_ts, end_ts, ecu_info_data):
-    import datetime
-    from html import escape
-
+def generate_html_report(messages_by_tc, output_path, asc_filename, start_ts, end_ts, ecu_info_data=None):
     total = len(messages_by_tc)
     passed = sum(1 for tc in messages_by_tc.values() if all(msg["status"] == "Pass" for msg in tc))
     failed = total - passed
@@ -280,53 +275,48 @@ def generate_html_report(messages_by_tc, output_path, asc_filename, start_ts, en
         th {{ background: #f0f0f0; }}
         #chart-container {{ width: 300px; margin: 20px auto; }}
     </style></head><body>
-
     <h1>UDS Diagnostic Report</h1>
-
     <div><strong>Generated:</strong> {generated_time}</div>
     <div><strong>CAN Log File:</strong> {asc_filename}</div>
     <div><strong>Total Test Cases:</strong> {total}</div>
     <div class="pass">Passed: {passed}</div>
     <div class="fail">Failed: {failed}</div>
     <div><strong>Test Duration:</strong> {duration:.3f} seconds</div>
-
-    <div style='float: right; text-align: left;'>
-        <h3>ECU Information:</h3>
     """
 
-    # ECU INFO block
-    for key, value in ecu_info_data.items():
-        html += f"<div>{escape(key)}: {escape(value)}</div>"
+    # ECU INFO BLOCK (right side)
+    if ecu_info_data:
+        html += "<div style='float: right; text-align: left;'><h3>ECU Information:</h3>"
+        for key, value in ecu_info_data.items():
+            html += f"<div>{escape(key)}: {escape(value)}</div>"
+        html += "</div>"
 
     html += """
-    </div>
-
     <div id="chart-container"><canvas id="passFailChart"></canvas></div>
-
     <script>
         const ctx = document.getElementById('passFailChart').getContext('2d');
-        new Chart(ctx, {{
+        new Chart(ctx, {
             type: 'pie',
-            data: {{
+            data: {
                 labels: ['Passed', 'Failed'],
-                datasets: [{{
-                    data: [{passed}, {failed}],
+                datasets: [{
+                    data: [%d, %d],
                     backgroundColor: ['#4CAF50', '#F44336']
-                }}]
-            }},
-            options: {{
+                }]
+            },
+            options: {
                 responsive: true,
-                plugins: {{
-                    legend: {{ position: 'bottom' }},
-                    title: {{ display: true, text: 'Test Case Results' }}
-                }}
-            }}
-        }});
+                plugins: {
+                    legend: { position: 'bottom' },
+                    title: { display: true, text: 'Test Case Results' }
+                }
+            }
+        });
     </script>
     <hr><br>
-    """
+    """ % (passed, failed)
 
-    # Accordion - test case details
+    # Test Case Details
     for tc_id, steps in messages_by_tc.items():
         status = steps[0]['status']
         status_class = 'pass' if status == 'Pass' else 'fail'
@@ -337,7 +327,7 @@ def generate_html_report(messages_by_tc, output_path, asc_filename, start_ts, en
             html += f"<tr><td>{step_count}</td><td>{escape(msg['desc'])}</td><td>{msg['timestamp']:.6f}</td><td>Request Sent</td><td></td><td>-</td></tr>\n"
             step_count += 1
             response = msg.get("response", {})
-            html += f"<tr><td>{step_count}</td><td></td><td>{response.get('timestamp', ''):.6f}</td><td>Response Received</td><td>{msg['status']}</td><td>{escape(msg.get('failure_reason', ''))}</td></tr>\n"
+            html += f"<tr><td>{step_count}</td><td></td><td>{response.get('timestamp', ''):.6f}</td><td>Response Received</td><td>{msg['status']}</td><td>{msg.get('failure_reason', '')}</td></tr>\n"
             step_count += 1
         html += "</table></details>\n"
 
@@ -348,8 +338,9 @@ def generate_html_report(messages_by_tc, output_path, asc_filename, start_ts, en
 
     print(f"✅ UDS HTML Report generated at:\n{output_path}\n")
 
+# ================== GENERATE REPORT WRAPPER ===================
 
-def generate_report(asc_file_path, txt_file_path, output_html_file, allowed_tx_ids, allowed_rx_ids, ecu_info_data):
+def generate_report(asc_file_path, txt_file_path, output_html_file, allowed_tx_ids, allowed_rx_ids, ecu_info_data=None):
     global DESCRIPTION_MAP
     DESCRIPTION_MAP = load_description_map(txt_file_path)
     get_description.used_tc_ids = set()
@@ -358,11 +349,13 @@ def generate_report(asc_file_path, txt_file_path, output_html_file, allowed_tx_i
         asc_file_path, allowed_tx_ids, allowed_rx_ids
     )
 
+    report_path = output_html_file
+
     generate_html_report(
-        messages_by_tc=messages_by_tc,
-        output_path=output_html_file,
-        asc_filename=os.path.basename(asc_file_path),
-        start_ts=start_ts,
-        end_ts=end_ts,
-        ecu_info_data=ecu_info_data
+        messages_by_tc,
+        report_path,
+        os.path.basename(asc_file_path),
+        start_ts,
+        end_ts,
+        ecu_info_data  # pass ECU info here
     )
