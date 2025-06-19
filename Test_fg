@@ -1,3 +1,11 @@
+generate_report(
+            asc_file_path=full_log_path,
+            txt_file_path=testcase_file_path,
+            output_html_file=report_path,
+            allowed_tx_ids=self.allowed_tx_ids,
+            allowed_rx_ids =self.allowed_rx_ids,
+            ecu_info_data = ecu_info_data
+        )
 import os
 import re
 import datetime
