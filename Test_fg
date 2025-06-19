@@ -1,43 +1,109 @@
-html = f"""<html><head><title>UDS Diagnostic Report</title>
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<style>
-    body {{ font-family: Arial; margin: 20px; }}
-    .pass {{ color: green; font-weight: bold; }}
-    .fail {{ color: red; font-weight: bold; }}
-    summary {{ font-weight: bold; cursor: pointer; }}
-    table {{ border-collapse: collapse; width: 100%; margin-top: 10px; }}
-    th, td {{ border: 1px solid #ccc; padding: 8px; }}
-    th {{ background: #f0f0f0; }}
-    #chart-container {{ width: 300px; margin: 20px auto; }}
-</style></head><body>
+def parse_asc_file(asc_file_path, allowed_tx_ids, allowed_rx_ids):
+    messages_by_tc = defaultdict(list)
+    current_request = None
+    start_ts = None
+    end_ts = None
+    awaiting_multiframe = False
+    skip_next_fc = False
+    rx_multi_response_pending = False
+    rx_multi_response_first = None
 
-<!-- CENTERED TITLE -->
-<div style="text-align: center;">
-    <h1>UDS Diagnostic Report</h1>
-</div>
+    allowed_tx_ids = set(f"{id:X}" for id in allowed_tx_ids)
+    allowed_rx_ids = set(f"{id:X}" for id in allowed_rx_ids)
 
-<!-- FLEX ROW -->
-<div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px;">
+    with open(asc_file_path, "r", encoding="utf-8", errors="ignore") as f:
+        for line in f:
+            line = line.strip()
+            if not line or not re.match(r"^\d+\.\d+", line):
+                continue
 
-    <!-- LEFT COLUMN -->
-    <div style="flex: 1;">
-        <div><strong>Generated:</strong> {generated_time}</div>
-        <div><strong>CAN Log File:</strong> {asc_filename}</div>
-        <div><strong>Total Test Cases:</strong> {total}</div>
-        <div class="pass">Passed: {passed}</div>
-        <div class="fail">Failed: {failed}</div>
-        <div><strong>Test Duration:</strong> {duration:.3f} seconds</div>
-    </div>
+            msg = parse_line(line)
+            if not msg:
+                continue
 
-    <!-- RIGHT COLUMN (ECU INFO) -->
-    <div style="flex: 0 0 auto; text-align: left; margin-left: 40px;">
-        <h3>ECU Information:</h3>
-"""
+            can_id = msg["can_id"].upper()
 
-# ECU INFO BLOCK
-if ecu_info_data:
-    for key, value in ecu_info_data.items():
-        html += f"<div>{escape(key)}: {escape(value)}</div>"
+            # Process Tx messages
+            if msg["direction"] == "Tx" and can_id in allowed_tx_ids:
+                data_bytes = msg["data_bytes"]
 
-# Close FLEX div
-html += "</div></div>"
+                # Multi-frame request
+                if data_bytes and data_bytes[0].upper() == "10":
+                    current_request = msg
+                    awaiting_multiframe = True
+                    skip_next_fc = True
+                else:
+                    # Single frame
+                    if msg.get("tc_id") and msg.get("desc"):
+                        current_request = msg
+                        awaiting_multiframe = False
+
+            # Process Rx messages
+            elif msg["direction"] == "Rx" and can_id in allowed_rx_ids:
+                data_bytes = msg["data_bytes"]
+
+                # Flow Control frame
+                if skip_next_fc and data_bytes and data_bytes[0].upper() == "30":
+                    skip_next_fc = False
+                    continue
+
+                # Multi-frame response - first frame
+                if data_bytes and data_bytes[0].upper() == "10":
+                    rx_multi_response_first = msg
+                    rx_multi_response_pending = True
+                    continue
+
+                # Multi-frame response - consecutive frame
+                if rx_multi_response_pending and data_bytes and data_bytes[0].upper() == "21":
+                    combined_bytes = rx_multi_response_first["data_bytes"][:7] + data_bytes[1:]
+                    rx_msg = {
+                        "timestamp": rx_multi_response_first["timestamp"],
+                        "can_id": rx_multi_response_first["can_id"],
+                        "direction": rx_multi_response_first["direction"],
+                        "data_bytes": combined_bytes
+                    }
+
+                    if current_request:
+                        status, reason = get_status(combined_bytes, current_request.get("expected_resp", ""))
+                        current_request["response"] = rx_msg
+                        current_request["status"] = status
+                        current_request["failure_reason"] = reason
+
+                        # ONLY collect TC_xxx test cases
+                        if current_request["tc_id"].startswith("TC"):
+                            messages_by_tc[current_request["tc_id"]].append(current_request)
+
+                        req_ts = current_request["timestamp"]
+                        res_ts = rx_msg["timestamp"]
+                        if start_ts is None or req_ts < start_ts:
+                            start_ts = req_ts
+                        if end_ts is None or res_ts > end_ts:
+                            end_ts = res_ts
+
+                        current_request = None
+
+                    rx_multi_response_pending = False
+                    rx_multi_response_first = None
+                    continue
+
+                # Single frame response
+                if current_request and not rx_multi_response_pending:
+                    status, reason = get_status(data_bytes, current_request.get("expected_resp", ""))
+                    current_request["response"] = msg
+                    current_request["status"] = status
+                    current_request["failure_reason"] = reason
+
+                    # ONLY collect TC_xxx test cases
+                    if current_request["tc_id"].startswith("TC"):
+                        messages_by_tc[current_request["tc_id"]].append(current_request)
+
+                    req_ts = current_request["timestamp"]
+                    res_ts = msg["timestamp"]
+                    if start_ts is None or req_ts < start_ts:
+                        start_ts = req_ts
+                    if end_ts is None or res_ts > end_ts:
+                        end_ts = res_ts
+
+                    current_request = None
+
+    return messages_by_tc, start_ts or 0, end_ts or 0
