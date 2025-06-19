@@ -1,215 +1,35 @@
-def get_ecu_information(self, oled=None):
-    self.start_logging(log_name_suffix="ECU_Info")
-    ecu_info = {}
-
-    session_default = int(self.uds_config["default_session"], 16)
-    session_extended = int(self.uds_config["extended_session"], 16)
-    grouped_cases = load_testcases()
-
-    def normalize_hex_string(val):
-        return val.lower().replace("0x", "").strip()
-
-    with Client(self.active_conn["conn"], request_timeout=2, config=self.client_config) as client:
-        try:
-            client.change_session(session_default)
-            time.sleep(0.2)
-            client.change_session(session_extended)
-            time.sleep(0.2)
-        except Exception as e:
-            if oled:
-                oled.display_centered_text(f"Session Error:\n{str(e)}")
-            logging.error(f"Session change failed: {e}")
-            self.stop_logging()
-            return
-
-        # Go through all RDxxx
-        for tc_id, steps in grouped_cases.items():
-            if not tc_id.startswith("RD"):
-                continue
-
-            logging.info(f"[ECU Info] Processing {tc_id}")
-
-            for step in steps:
-                logging.debug(f"[ECU Info] Step={step}")
-
-                try:
-                    tc_id, step_desc, service, subfunc, expected, *rest = step
-
-                    service_clean = normalize_hex_string(service)
-                    subfunc_clean = normalize_hex_string(subfunc)
-
-                    if service_clean != "22":
-                        continue
-
-                    try:
-                        did = int(subfunc_clean, 16)
-                    except ValueError as ve:
-                        logging.error(f"[ECU Info] Invalid subfunc '{subfunc}' in {tc_id} step '{step_desc}': {ve}")
-                        continue
-
-                    response = client.read_data_by_identifier(did)
-                    if response.positive:
-                        values = response.service_data.values[did]
-                        if isinstance(values, (bytes, bytearray)):
-                            hex_str = ' '.join(f"{b:02X}" for b in values)
-                        elif isinstance(values, str):
-                            hex_str = values
-                        else:
-                            hex_str = str(values)
-
-                        ecu_info[step_desc] = hex_str
-
-                        if oled:
-                            oled.display_centered_text(f"{step_desc}\n{hex_str}")
-
-                        logging.info(f"[ECU Info] {step_desc} ({subfunc}) = {hex_str}")
-
-                    else:
-                        nrc = hex(response.code)
-                        ecu_info[step_desc] = f"NRC: {nrc}"
-
-                        if oled:
-                            oled.display_centered_text(f"{step_desc}\nNRC: {nrc}")
-
-                        logging.warning(f"[ECU Info] {step_desc} - NRC: {nrc}")
-
-                except Exception as e:
-                    error_msg = str(e)[:40]
-                    ecu_info[step_desc] = f"Error: {error_msg}"
-
-                    if oled:
-                        oled.display_centered_text(f"{step_desc}\nError: {error_msg}")
-
-                    logging.error(f"[ECU Info] {step_desc} - Exception: {e}")
-
-                time.sleep(0.1)
-
-    self.stop_logging()
-###
-
-2025-06-19 08:29:23,516 [INFO] Captured sequence: [12, 20]
-2025-06-19 08:29:25,102 [DEBUG] can config: {'channel': 'can0', 'interface': 'socketcan'}
-2025-06-19 08:29:25,103 [INFO] Created a socket
-2025-06-19 08:29:25,104 [DEBUG] Binding socket to channel=can0
-2025-06-19 08:29:25,104 [DEBUG] Bound socket.
-2025-06-19 08:29:25,106 [INFO] CAN logging started: /home/mobase/Pld/udsoncan/output/can_logs/CANLog_ECU_Info_20250619_082925.asc
-2025-06-19 08:29:25,108 [DEBUG] Starting CanStack
-2025-06-19 08:29:25,109 [DEBUG] Main thread has started
-2025-06-19 08:29:25,110 [DEBUG] Relay thread has started
-2025-06-19 08:29:25,111 [INFO] Connection opened
-2025-06-19 08:29:25,112 [INFO] DiagnosticSessionControl<0x10> - Switching session to defaultSession (0x01)
-2025-06-19 08:29:25,113 [DEBUG] Sending request to server
-2025-06-19 08:29:25,114 [DEBUG] Sending 2 bytes : [1001]
-2025-06-19 08:29:25,115 [DEBUG] Enqueuing a SendRequest for 2 bytes and TAT=Physical
-2025-06-19 08:29:25,116 [DEBUG] Waiting for server response
-2025-06-19 08:29:25,117 [DEBUG] Tx: <716> (08) [ ]	 0210010000000000
-2025-06-19 08:29:25,118 [DEBUG] We've been asked to write a message to the bus
-2025-06-19 08:29:25,118 [DEBUG] sending: Timestamp:        0.000000        ID: 0716    S Rx                DL:  8    02 10 01 00 00 00 00 00
-2025-06-19 08:29:25,144 [DEBUG] Rx: <71E> (08) [p]	 065001003201f4aa
-2025-06-19 08:29:25,146 [DEBUG] Received 6 bytes : [5001003201f4]
-2025-06-19 08:29:25,149 [DEBUG] Received response from server
-2025-06-19 08:29:25,150 [INFO] Received positive response for service DiagnosticSessionControl (0x10) from server.
-2025-06-19 08:29:25,353 [INFO] DiagnosticSessionControl<0x10> - Switching session to extendedDiagnosticSession (0x03)
-2025-06-19 08:29:25,354 [DEBUG] Sending request to server
-2025-06-19 08:29:25,354 [DEBUG] Sending 2 bytes : [1003]
-2025-06-19 08:29:25,355 [DEBUG] Enqueuing a SendRequest for 2 bytes and TAT=Physical
-2025-06-19 08:29:25,355 [DEBUG] Waiting for server response
-2025-06-19 08:29:25,356 [DEBUG] Tx: <716> (08) [ ]	 0210030000000000
-2025-06-19 08:29:25,357 [DEBUG] We've been asked to write a message to the bus
-2025-06-19 08:29:25,358 [DEBUG] sending: Timestamp:        0.000000        ID: 0716    S Rx                DL:  8    02 10 03 00 00 00 00 00
-2025-06-19 08:29:25,383 [DEBUG] Rx: <71E> (08) [p]	 065003003201f4aa
-2025-06-19 08:29:25,384 [DEBUG] Received 6 bytes : [5003003201f4]
-2025-06-19 08:29:25,386 [DEBUG] Received response from server
-2025-06-19 08:29:25,387 [INFO] Received positive response for service DiagnosticSessionControl (0x10) from server.
-2025-06-19 08:29:25,588 [INFO] [ECU Info] Processing RD
-2025-06-19 08:29:25,591 [DEBUG] Stopping CanStack
-2025-06-19 08:29:25,592 [DEBUG] Main thread is exiting
-2025-06-19 08:29:25,636 [DEBUG] CanStack Stopped
-2025-06-19 08:29:25,637 [INFO] Connection closed
-2025-06-19 08:29:25,730 [ERROR] [CANLogger] Error during stop: I/O operation on closed file.
+2025-06-19 08:48:54,315 [DEBUG] Rx: <71E> (08) [p]	 037f2e33aaaaaaaa
+2025-06-19 08:48:54,317 [DEBUG] Received 3 bytes : [7f2e33]
+2025-06-19 08:48:54,320 [DEBUG] Received response from server
+2025-06-19 08:48:54,324 [WARNING] WriteDataByIdentifier service execution returned a negative response SecurityAccessDenied (0x33)
+2025-06-19 08:48:54,327 [WARNING] TC_036 ECUSoftwareUnit1IVDDataIdentifier(2E F1 C1) -> FAIL - NRC: 0x33
+2025-06-19 08:48:54,330 [DEBUG] Stopping CanStack
+2025-06-19 08:48:54,334 [DEBUG] Main thread is exiting
+2025-06-19 08:48:54,369 [DEBUG] CanStack Stopped
+2025-06-19 08:48:54,371 [INFO] Connection closed
+2025-06-19 08:48:56,478 [INFO] CAN logging stopped: /home/mobase/Pld/udsoncan/output/can_logs/CANLog_ECU_Info_20250619_084707.asc
+[CANLogger] Log file saved to: /home/mobase/Pld/udsoncan/output/can_logs/CANLog_ECU_Info_20250619_084707.asc
+2025-06-19 08:48:57,980 [INFO] ✅ Log file found: /home/mobase/Pld/udsoncan/output/can_logs/CANLog_ECU_Info_20250619_084707.asc
+Log file found: /home/mobase/Pld/udsoncan/output/can_logs/CANLog_ECU_Info_20250619_084707.asc
+Traceback (most recent call last):
+  File "/home/mobase/Pld/udsoncan/input/application/main.py", line 263, in <module>
+    main()
+  File "/home/mobase/Pld/udsoncan/input/application/main.py", line 260, in main
+    app.main_menu()
+  File "/home/mobase/Pld/udsoncan/input/application/main.py", line 167, in main_menu
+    self.uds.run_testcase(self.oled)
+  File "/home/mobase/Pld/udsoncan/input/drivers/uds_client.py", line 463, in run_testcase
+    generate_report(
+  File "/home/mobase/Pld/udsoncan/input/drivers/report_generator.py", line 353, in generate_report
+    generate_html_report(
+  File "/home/mobase/Pld/udsoncan/input/drivers/report_generator.py", line 290, in generate_html_report
+    for key, value in ecu_info_data.items():
+                      ^^^^^^^^^^^^^^^^^^^
+AttributeError: 'NoneType' object has no attribute 'items'
 
 
 ####
-def get_ecu_information(self, oled=None):
-        
-        self.start_logging(log_name_suffix="ECU_Info")
-        ecu_info = {}
-        session_default = int(self.uds_config["default_session"], 16)
-        session_extended = int(self.uds_config["extended_session"], 16)
-        grouped_cases = load_testcases()
-        with Client(self.active_conn["conn"], request_timeout=2, config=self.client_config) as client:
-            try:
-                client.change_session(session_default)
-                time.sleep(0.2)
-                client.change_session(session_extended)
-                time.sleep(0.2)
-            except Exception as e:
-                oled.display_centered_text(f"Session Error:\n{str(e)}")
-                logging.error(f"Session change failed: {e}")
-                self.stop_logging()
-                return
 
-            # Go through all RDxxx
-            for tc_id, steps in grouped_cases.items():
-                if not tc_id.startswith("RD"):
-                    continue
-            
-                logging.info(f"[ECU Info] Processing {tc_id}")
-            
-                for step in steps:
-                    try:
-                        tc_id, step_desc, service, subfunc, expected, *rest = step
-            
-                        if service != "22":
-                            continue
-            
-                        try:
-                                did = int(subfunc, 16)
-                                
-                        except ValueError as ve:
-                               logging.error(f"[ECU Info] Invalid subfunc '{subfunc}' in {tc_id} step '{step_desc}': {ve}")
-                               continue
-                               
-                        response = client.read_data_by_identifier(did)
-                        if response.positive:
-                            values = response.service_data.values[did]
-                            if isinstance(values, (bytes, bytearray)):
-                                hex_str = ' '.join(f"{b:02X}" for b in values)
-                            elif isinstance(values, str):
-                                hex_str = values
-                            else:
-                                hex_str = str(values)
-            
-                            ecu_info[step_desc] = hex_str
-            
-                            if oled:
-                                oled.display_centered_text(f"{step_desc}\n{hex_str}")
-            
-                            logging.info(f"[ECU Info] {step_desc} ({subfunc}) = {hex_str}")
-            
-                        else:
-                            nrc = hex(response.code)
-                            ecu_info[step_desc] = f"NRC: {nrc}"
-            
-                            if oled:
-                                oled.display_centered_text(f"{step_desc}\nNRC: {nrc}")
-            
-                            logging.warning(f"[ECU Info] {step_desc} - NRC: {nrc}")
-            
-                    except Exception as e:
-                        error_msg = str(e)[:40]
-                        ecu_info[step_desc] = f"Error: {error_msg}"
-            
-                        if oled:
-                            oled.display_centered_text(f"{step_desc}\nError: {error_msg}")
-            
-                        logging.error(f"[ECU Info] {step_desc} - Exception: {e}")
-            
-                    time.sleep(3)
-
-             
-
-        self.stop_logging()
 
     def run_testcase(self, oled):
         if not self.check_memory(oled):
@@ -248,33 +68,48 @@ def get_ecu_information(self, oled=None):
                         response=None
                         if service_int == 0x10:
                             response = client.change_session(subfunc_int)
+                        elif service_int == 0x11:
+                            response = client.ecu_reset(subfunc_int)
+                        elif service_int == 0x22:
+                            response = client.read_data_by_identifier(subfunc_int)
+                        elif service_int == 0x2E:  # WriteDataByIdentifier
+                            data_to_write = write_data_dict.get(subfunc_int)
+                            if data_to_write is None:
+                                raise ValueError(f"No write data configured for DID {hex(subfunc_int)}")
+                            response = client.write_data_by_identifier(subfunc_int, data_to_write)
+                        elif service_int == 0x19:  # ReadDTCInformation
+                            response = client.read_dtc_information(subfunc_int,status_mask=0xFF)
+                            
+                        elif service_int == 0x14:  # ClearDiagnosticInformation
+                            group_of_dtc = subfunc_int
                             
                             
                             
-                            
- ###'
- #TC_ID-0 , Sub Service Description , Service ID , Sub service ID , Positive response data,addressing
-RD , S/W Version  , 0x22 , 0xF1DD , 0x62,physical
-RD , B-CAN Version , 0x22 , 0xF100 , 0x62,physical
-RD , ManufacturingDate(22 F1 8B) , 0x22 , 0xF18B , 0x62,physical
-RD , ECU_Serial Number , 0x22 , 0xF18C , 0x62,physical
-RD , H/W Version , 0x22 , 0xF193 , 0x62,physical
-TC_001 , DefaultSession(10 01) , 0x10 , 0x01 , 0x50, physical
-TC_002 , Extended Session (10 03) , 0x10 , 0x03 , 0x50 ,physical
-TC_003 , TesterPresent(3E 00) , 0x3E , 0x00 , 0x7E ,functional
-TC_004 , S/W Version Dataidentifier(22 F1 DD) , 0x22 , 0xF1DD , 0x62,physical
-TC_005 , BodyCANDataBaseVersionNumBErDataIdentifier(22 F1 00) , 0x22 , 0xF100 , 0x62,physical
-TC_006 , VehicleManufacturerSparePartNumBErDataIdentifier(22 F1 87) , 0x22 , 0xF187 , 0x62,physical
-TC_007 , ECUManufacturingDateDataIdentifier(22 F1 8B) , 0x22 , 0xF18B , 0x62,physical
-TC_008 , ECUSerialNumberDataIdentifier (22 F1 8C), 0x22 , 0xF18C , 0x62,physical
-TC_009 , SystemSupplierECUHardwareVersionNumberDataIdentifier(22 F1 91), 0x22 , 0xF191 , 0x62,physical
-TC_010 , SystemSupplierECUHardwareVersionNumberDataIdentifier(22 F1 93) , 0x22 , 0xF193 , 0x62,physical
-TC_011 , SystemSupplierECUSoftwareVersionNumbe DataIdentifier(22 F1 95) , 0x22 , 0xF195 , 0x62,physical
-TC_012 , SoftwareVersionHKMCVehicleManufactureDataIdentifier(22 F1 A0) , 0x22 , 0xF1A0 , 0x62,physical
-TC_013 , DTC setting ON (85 01), 0x85 , 0x01 , 0xC5, functional
-TC_014 , DTC setting OFF(85 02) , 0x85 , 0x02 , 0xC5,functional
-TC_015 , EnableRxAndEnableTx(28 00) , 0x28 , 0x00 , 0x68,functional
-TC_016 , EnableRxAndDisableTx(28 01) , 0x28 , 0x01 , 0x68,functional
-TC_017, DisableRxAndEnableTx(28 02) , 0x28 , 0x02 , 0x68,functional
-TC_018 , DisableRxAndDisableTx(28 03) , 0x28 , 0x03 , 0x68,functional
-TC_019 , Hard Reset(11 01) , 0x11 , 0x01 , 0x51,physical                           
+                             status = "Fail"
+                        failure_reason = "-"
+                        if response.positive:
+                            actual = list(response.original_payload)
+                            if actual[:len(expected_bytes)] == expected_bytes:
+                                status = "Pass"
+                                logging.info(f"{tc_id} {step_desc}-> PASS")
+                            else:
+                                failure_reason = f"Expected {expected_bytes}, got {actual}"
+                                logging.warning(f"{tc_id} {step_desc} -> FAIL - {failure_reason}")
+                        else:
+                            failure_reason = f"NRC: {hex(response.code)}"
+                            logging.warning(f"{tc_id} {step_desc} -> FAIL - {failure_reason}")
+                except Exception as e:
+                    status = "Fail"
+                    failure_reason = str(e)
+                    logging.error(f"{tc_id} {step_desc} -> EXCEPTION - {failure_reason}")
+
+                delay_key=service.upper()
+                delay=float(self.step_delays.get(delay_key,self.default_delay))
+                oled.display_centered_text(f"{tc_id}\n{step_desc[:20]}\n{status}")
+                time.sleep(delay)
+
+        self.stop_logging()
+        time.sleep(1.5)
+
+        full_log_path = self.can_logger.get_log_path() or "N/A"
+        can_log_file = os.path.basename(full_log_path)
