@@ -80,17 +80,16 @@ TC_ID-092 , PreCondition: PC_ID-08 to PreCondition: PC_ID-10 Testcase: HardwareV
 TC_ID-093 , PreCondition: PC_ID-08 to PreCondition: PC_ID-10 Testcase: ECUSoftwareUnit1IVDDataIdentifier_F1_C1_Write,0x2E,0xF1C1,0x6E
 TC_ID-094 , PreCondition: PC_ID-08 to PreCondition: PC_ID-10 Testcase: SystemSupplierECUSoftwareVersionNumbe_DataIdentifier_F1_95_Write,0x2E,0xF195,0x6E
 TC_ID-095 , PreCondition: PC_ID-08 to PreCondition: PC_ID-10 Testcase: SystemNameOrEngineTypeDataIdentifier_Write,0x2E,0xF197,0x6E
-PC_ID-013 , SendKey_ASK_Send,0x27,0x12,0x67
 PC_ID-014 , Start Extended session,0x10,0x03,0x50
 PC_ID-015 , RequestSeed_ASK_Request,0x27,0x11,0x67
 PC_ID-016 , SendKey_ASK_Send,0x27,0x13,0x12
-TC_ID-123 , PreCondition: PC_ID-14 to PreCondition: PC_ID-16   Testcase:ECU_Supplier_Code_F1_A1_Write(invalid security),0x2E,0xF1A1,0x33
-TC_ID-124 , PreCondition: PC_ID-14 to PreCondition: PC_ID-16   Testcase:Manufacturing_F1_8B_Write(invalid security),0x2E,0xF18B,0x33
-TC_ID-125 , PreCondition: PC_ID-14 to PreCondition: PC_ID-16   Testcase:ECU_Serial_Number_F1_8C_Write(invalid security),0x2E,0xF18C,0x33
-TC_ID-126 , PreCondition: PC_ID-14 to PreCondition: PC_ID-16   Testcase:Vehicle_Manufacturer_Spare_Part_Number_F1_87_Write(invalid security),0x2E,0xF187,0x33
-TC_ID-127 , PreCondition: PC_ID-14 to PreCondition: PC_ID-16   Testcase:Vehicle_Manufacturer_ECU_HW_Number_F1_91_Write(invalid security),0x2E,0xF191,0x33
-TC_ID-128 , PreCondition: PC_ID-14 to PreCondition: PC_ID-16   Testcase:HardwareVersionNumber_F1_93_Write(invalid security),0x2E,0xF193,0x33
-TC_ID-129 , PreCondition: PC_ID-14 to PreCondition: PC_ID-16   Testcase:ECUSoftwareUnit1IVDDataIdentifier_F1_C1_Write(invalid security),0x2E,0xF1C1,0x33
-TC_ID-130 , PreCondition: PC_ID-14 to PreCondition: PC_ID-16   Testcase:SystemSupplierECUSoftwareVersionNumbe_DataIdentifier_F1_95_Write(invalid security),0x2E,0xF195,0x33
-TC_ID-131 , PreCondition: PC_ID-14 to PreCondition: PC_ID-16   Testcase:SystemNameOrEngineTypeDataIdentifier_Write(invalid security),0x2E,0xF197,0x33
+TC_ID-123 , PreCondition: PC_ID-14 to PreCondition: PC_ID-16 Testcase:ECU_Supplier_Code_F1_A1_Write(invalid security),0x2E,0xF1A1,0x33
+TC_ID-124 , PreCondition: PC_ID-14 to PreCondition: PC_ID-16 Testcase:Manufacturing_F1_8B_Write(invalid security),0x2E,0xF18B,0x33
+TC_ID-125 , PreCondition: PC_ID-14 to PreCondition: PC_ID-16 Testcase:ECU_Serial_Number_F1_8C_Write(invalid security),0x2E,0xF18C,0x33
+TC_ID-126 , PreCondition: PC_ID-14 to PreCondition: PC_ID-16 Testcase:Vehicle_Manufacturer_Spare_Part_Number_F1_87_Write(invalid security),0x2E,0xF187,0x33
+TC_ID-127 , PreCondition: PC_ID-14 to PreCondition: PC_ID-16 Testcase:Vehicle_Manufacturer_ECU_HW_Number_F1_91_Write(invalid security),0x2E,0xF191,0x33
+TC_ID-128 , PreCondition: PC_ID-14 to PreCondition: PC_ID-16 Testcase:HardwareVersionNumber_F1_93_Write(invalid security),0x2E,0xF193,0x33
+TC_ID-129 , PreCondition: PC_ID-14 to PreCondition: PC_ID-16 Testcase:ECUSoftwareUnit1IVDDataIdentifier_F1_C1_Write(invalid security),0x2E,0xF1C1,0x33
+TC_ID-130 , PreCondition: PC_ID-14 to PreCondition: PC_ID-16 Testcase:SystemSupplierECUSoftwareVersionNumbe_DataIdentifier_F1_95_Write(invalid security),0x2E,0xF195,0x33
+TC_ID-131 , PreCondition: PC_ID-14 to PreCondition: PC_ID-16 Testcase:SystemNameOrEngineTypeDataIdentifier_Write(invalid security),0x2E,0xF197,0x33
 TC_ID-139 , sub function not supported(with wrong sub function),0x3E,0xFF,0x12
