@@ -275,48 +275,59 @@ def generate_html_report(messages_by_tc, output_path, asc_filename, start_ts, en
         th {{ background: #f0f0f0; }}
         #chart-container {{ width: 300px; margin: 20px auto; }}
     </style></head><body>
-    <h1>UDS Diagnostic Report</h1>
-    <div><strong>Generated:</strong> {generated_time}</div>
-    <div><strong>CAN Log File:</strong> {asc_filename}</div>
-    <div><strong>Total Test Cases:</strong> {total}</div>
-    <div class="pass">Passed: {passed}</div>
-    <div class="fail">Failed: {failed}</div>
-    <div><strong>Test Duration:</strong> {duration:.3f} seconds</div>
-    """
-
-    # ECU INFO BLOCK (right side)
-    if ecu_info_data:
-        html += "<div style='position: absolute; top: 20px; right: 30px; text-align: left;'><h3>ECU Information:</h3>"
-        for key, value in ecu_info_data.items():
-            html += f"<div>{escape(key)}: {escape(value)}</div>"
-        html += "</div>"
+    <!-- CENTERED TITLE -->
+       <div style="text-align: center;">
+           <h1>UDS Diagnostic Report</h1>
+       </div>
+       
+       <!-- FLEX ROW: LEFT INFO + RIGHT ECU INFO -->
+       <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px;">
+       
+           <!-- LEFT INFO -->
+           <div style="flex: 1;">
+               <div><strong>Generated:</strong> {generated_time}</div>
+               <div><strong>CAN Log File:</strong> {asc_filename}</div>
+               <div><strong>Total Test Cases:</strong> {total}</div>
+               <div class="pass">Passed: {passed}</div>
+               <div class="fail">Failed: {failed}</div>
+               <div><strong>Test Duration:</strong> {duration:.3f} seconds</div>
+           </div>
+       
+           """
+       
+           # ECU INFO BLOCK (right side)
+           if ecu_info_data:
+              html += '<div style="flex: 0 0 auto; text-align: left; margin-left: 40px;"><h3>ECU Information:</h3>'
+               for key, value in ecu_info_data.items():
+                   html += f"<div>{escape(key)}: {escape(value)}</div>"
+               html += "</div>"
 
     html += """
     <div id="chart-container"><canvas id="passFailChart"></canvas></div>
-
     <script>
         const ctx = document.getElementById('passFailChart').getContext('2d');
-        new Chart(ctx, {{
+        new Chart(ctx, {
             type: 'pie',
-            data: {{
+            data: {
                 labels: ['Passed', 'Failed'],
-                datasets: [{{
-                    data: [{passed}, {failed}],
+                datasets: [{
+                    data: [%d, %d],
                     backgroundColor: ['#4CAF50', '#F44336']
-                }}]
-            }},
-            options: {{
+                }]
+            },
+            options: {
                 responsive: true,
-                plugins: {{
-                    legend: {{ position: 'bottom' }},
-                    title: {{ display: true, text: 'Test Case Results' }}
-                }}
-            }}
-        }});
+                plugins: {
+                    legend: { position: 'bottom' },
+                    title: { display: true, text: 'Test Case Results' }
+                }
+            }
+        });
     </script>
     <hr><br>
-    """
+    """ % (passed, failed)
 
+    # Test Case Details
     for tc_id, steps in messages_by_tc.items():
         status = steps[0]['status']
         status_class = 'pass' if status == 'Pass' else 'fail'
@@ -359,3 +370,5 @@ def generate_report(asc_file_path, txt_file_path, output_html_file, allowed_tx_i
         end_ts,
         ecu_info_data  # pass ECU info here
     )
+
+        
