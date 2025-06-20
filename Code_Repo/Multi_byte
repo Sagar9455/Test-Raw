@@ -1,0 +1,39 @@
+elif service_int == 0x10:
+    try:
+        expected_bytes = [int(b, 16) for b in expected.strip().split()]
+
+        subfunc_clean = subfunc.strip() if subfunc else ""
+        if subfunc_clean:
+            try:
+                # Supports multi-byte subfunctions like "0102"
+                subfunc_bytes = bytes.fromhex(subfunc_clean)
+            except ValueError as ve:
+                logging.error(f"{tc_id} - Invalid subfunction hex format: '{subfunc_clean}'")
+                oled.display_centered_text(f"{tc_id}\nInvalid SubFunc")
+                continue
+        else:
+            subfunc_bytes = b''  # No subfunction
+
+        raw_request = bytes([0x10]) + subfunc_bytes
+        logging.info(f"{tc_id} - {step_desc}: Sending {raw_request.hex().upper()}")
+
+        client.conn.send(raw_request)
+        response_data = client.conn.wait_frame(timeout=2)
+
+        if response_data:
+            logging.info(f"{tc_id} - Received: {response_data.hex().upper()}")
+            if response_data[0] == expected_bytes[0]:
+                logging.info(f"{tc_id} - {step_desc} -> PASS")
+            else:
+                failure_reason = f"Unexpected SID: {response_data[0]:02X}"
+                logging.warning(f"{tc_id} - {step_desc} -> FAIL - {failure_reason}")
+        else:
+            logging.warning(f"{tc_id} - No response received")
+
+    except Exception as e:
+        logging.error(f"{tc_id} - Exception: {type(e).__name__} - {str(e)}")
+        oled.display_centered_text(f"{tc_id}\nError: {str(e)[:16]}")
+        time.sleep(2)
+
+    oled.display_centered_text(f"{tc_id}\n{step_desc[:20]}")
+    time.sleep(2)
