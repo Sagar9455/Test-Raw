@@ -1,16 +1,22 @@
+    def get_testcase_file_path(self):
+            project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
+            #project_root = os.path.dirname(os.path.abspath(__file__))
+            file_path = os.path.join(project_root, 'input', 'supportfiles', 'testcase.txt')
+	        
+            if not os.path.exists(file_path):
+                raise FileNotFoundError(f"Testcase file not found: {file_path}")
+	        
+            return file_path
+
+    testcase_file_path = self.get_testcase_file_path()
+
+
 Traceback (most recent call last):
   File "/home/mobase/Final_test/input/application/main.py", line 9, in <module>
     from drivers import oled_display, button_input, config_loader, uds_client, transfer_file
   File "/home/mobase/Final_test/input/drivers/uds_client.py", line 26, in <module>
     class UDSClient:
-  File "/home/mobase/Final_test/input/drivers/uds_client.py", line 193, in UDSClient
-    testcase_file_path = get_testcase_file_path()
-                         ^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home/mobase/Final_test/input/drivers/uds_client.py", line 189, in get_testcase_file_path
-    raise FileNotFoundError(f"Testcase file not found: {file_path}")
-FileNotFoundError: Testcase file not found: /home/mobase/Final_test/input/drivers/input/supportFiles/testcase.txt
-
-
-------------------
-(program exited with code: 1)
-Press return to continue
+  File "/home/mobase/Final_test/input/drivers/uds_client.py", line 194, in UDSClient
+    testcase_file_path = self.get_testcase_file_path()
+                         ^^^^
+NameError: name 'self' is not defined
