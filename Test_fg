@@ -1,33 +1,55 @@
-# === Response Verification ===
-                    if response is not None:
-                        try:
-                            raw_payload = list(response)
-                            logging.debug(f"{tc_id} {step_desc} -> Received payload: {raw_payload}")
 
-                            status, failure_reason = verify_response(raw_payload, expected_bytes, tc_id, step_desc)
+2025-06-20 11:55:16,950 [INFO] Running Test Case: TC_ID-009
+2025-06-20 11:55:16,950 [DEBUG] Starting CanStack
+2025-06-20 11:55:16,952 [DEBUG] Main thread has started
+2025-06-20 11:55:16,953 [DEBUG] Relay thread has started
+2025-06-20 11:55:16,954 [INFO] Connection opened
+2025-06-20 11:55:16,954 [INFO] Switched to physical mode for TC: TC_ID-009 Step: Sub function not supported(out ofrange)(11 08)
+2025-06-20 11:55:16,955 [INFO] Loaded write data:[61843, 61841, 61845, 61857, 61847, 61835, 61836, 61889, 61831]
+2025-06-20 11:55:16,956 [INFO] TC_ID-009 - Sub function not supported(out ofrange)(11 08): SID=0x11, Sub=0x08, Expected=[18]
+2025-06-20 11:55:16,956 [DEBUG] Sending 2 bytes : [1108]
+2025-06-20 11:55:16,957 [DEBUG] Enqueuing a SendRequest for 2 bytes and TAT=Physical
+2025-06-20 11:55:16,958 [DEBUG] Tx: <716> (08) [ ]	 0211080000000000
+2025-06-20 11:55:16,958 [DEBUG] We've been asked to write a message to the bus
+2025-06-20 11:55:16,959 [DEBUG] sending: Timestamp:        0.000000        ID: 0716    S Rx                DL:  8    02 11 08 00 00 00 00 00
+2025-06-20 11:55:16,974 [DEBUG] Rx: <71E> (08) [p]	 037f1112aaaaaaaa
+2025-06-20 11:55:16,975 [DEBUG] Received 3 bytes : [7f1112]
+2025-06-20 11:55:16,976 [DEBUG] TC_ID-009 Sub function not supported(out ofrange)(11 08) -> Received payload: [127, 17, 18]
+2025-06-20 11:55:16,977 [WARNING] TC_ID-009 Sub function not supported(out ofrange)(11 08) -> FAIL - Expected Positive Response, but got NRC: 0x12
+2025-06-20 11:55:16,977 [WARNING] TC_ID-009 Sub function not supported(out ofrange)(11 08) -> FAIL - Expected Positive Response, but got NRC: 0x12
+2025-06-20 11:55:16,978 [DEBUG] Stopping CanStack
+2025-06-20 11:55:16,978 [DEBUG] Main thread is exiting
+2025-06-20 11:55:17,025 [DEBUG] CanStack Stopped
+2025-06-20 11:55:17,026 [INFO] Connection closed
 
-                            if status == "Pass":
-                                logging.info(f"{tc_id} {step_desc} -> PASS")
-                            else:
-                                logging.warning(f"{tc_id} {step_desc} -> FAIL - {failure_reason}")
 
-                        except Exception as e:
-                            status = "Fail"
-                            failure_reason = f"Could not extract payload: {str(e)}"
-                            logging.error(f"{tc_id} {step_desc} -> FAIL - {failure_reason}")
-                    else:
-                        status = "Fail"
-                        failure_reason = "No response received (timeout)"
-                        logging.error(f"{tc_id} {step_desc} -> FAIL - {failure_reason}")
 
-            except Exception as e:
-                status = "Fail"
-                failure_reason = str(e)
-                logging.error(f"{tc_id} {step_desc} -> EXCEPTION - {failure_reason}")
+#TC_ID/PC_ID , Testcase Description,Service ID,Sub service ID,Expected response data
+TC_ID-001 , Start default session,0x10,0x01,0x50
+TC_ID-003 , Start Extended session,0x10,0x03,0x50
+TC_ID-004 , Sub function not supported(10 FF),0x10,0xFF,0x12
+TC_ID-007 , Hard reset,0x11,0x01,0x51
+TC_ID-008 , Soft reset,0x11,0x03,0x51
+TC_ID-009 , Sub function not supported(out ofrange)(11 08) ,0x11,0x08,0x12
+TC_ID-012 , Incorrect message length,0x11,0x01 0x01,0x7F
+TC_ID-018 , Subfunction not supported,0x28,8,0x12
+PC_ID-001 , Start Default session,0x10,0x01,0x50
 
-            delay_key = service.upper()
-            delay = float(self.step_delays.get(delay_key, self.default_delay))
-            oled.display_centered_text(f"{tc_id}\n{step_desc[:20]}\n{status}")
-            time.sleep(delay)
 
-    self.stop_logging()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
