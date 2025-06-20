@@ -1,284 +1,33 @@
+# === Response Verification ===
+                    if response is not None:
+                        try:
+                            raw_payload = list(response)
+                            logging.debug(f"{tc_id} {step_desc} -> Received payload: {raw_payload}")
 
- def verify_response(raw_payload, expected_bytes, tc_id, step_desc):
-            status = "Fail"
-            failure_reason = "-"
-            
-            try:
-                expected_first_byte = expected_bytes[0]
-                actual_first_byte = raw_payload[0]
-            
-                if expected_first_byte != 0x7F:
-                    if actual_first_byte != 0x7F:
-                        if raw_payload[:len(expected_bytes)] == expected_bytes:
-                            status = "Pass"
-                            logging.info(f"{tc_id} {step_desc} -> PASS")
-                        else:
-                            failure_reason = f"Expected {expected_bytes}, got {raw_payload[:len(expected_bytes)]}"
-                            logging.warning(f"{tc_id} {step_desc} -> FAIL - {failure_reason}")
+                            status, failure_reason = verify_response(raw_payload, expected_bytes, tc_id, step_desc)
+
+                            if status == "Pass":
+                                logging.info(f"{tc_id} {step_desc} -> PASS")
+                            else:
+                                logging.warning(f"{tc_id} {step_desc} -> FAIL - {failure_reason}")
+
+                        except Exception as e:
+                            status = "Fail"
+                            failure_reason = f"Could not extract payload: {str(e)}"
+                            logging.error(f"{tc_id} {step_desc} -> FAIL - {failure_reason}")
                     else:
-                        nrc_code = raw_payload[2] if len(raw_payload) >= 3 else None
-                        failure_reason = f"Expected Positive Response, but got NRC: {hex(nrc_code) if nrc_code is not None else 'Unknown'}"
-                        logging.warning(f"{tc_id} {step_desc} -> FAIL - {failure_reason}")
-            
-                else:
-                    if actual_first_byte == 0x7F:
-                        nrc_code = raw_payload[2] if len(raw_payload) >= 3 else None
-                        if nrc_code == expected_bytes[-1]:
-                            status = "Pass"
-                            logging.info(f"{tc_id} {step_desc} -> PASS")
-                        else:
-                            failure_reason = f"Expected NRC {hex(expected_bytes[-1])}, got {hex(nrc_code) if nrc_code is not None else 'Unknown'}"
-                            logging.warning(f"{tc_id} {step_desc} -> FAIL - {failure_reason}")
-                    else:
-                        failure_reason = f"Expected Negative Response ({hex(expected_bytes[-1])}), but got Positive Response"
-                        logging.warning(f"{tc_id} {step_desc} -> FAIL - {failure_reason}")
-            
+                        status = "Fail"
+                        failure_reason = "No response received (timeout)"
+                        logging.error(f"{tc_id} {step_desc} -> FAIL - {failure_reason}")
+
             except Exception as e:
+                status = "Fail"
                 failure_reason = str(e)
                 logging.error(f"{tc_id} {step_desc} -> EXCEPTION - {failure_reason}")
-            
-            return status, failure_reason
-            
-            
-            
-    
-    
-    def run_testcase(self, oled):
-        if not self.check_memory(oled):
-                return
 
-        self.start_logging(log_name_suffix="Testcase")
-        grouped_cases = load_testcases()
-        self.context = {}
-        
-        for tc_id, steps in grouped_cases.items():
-            print("\n")
-            logging.info(f"Running Test Case: {tc_id}")
-        
-            for step in steps:
-                tc_id, step_desc, service, subfunc, expected, *rest = step
-                addressing = rest[0].strip().lower() if rest else "physical"
-        
-                try:
-                    self.switch_mode(addressing)
-        
-                    with Client(self.active_conn["conn"], request_timeout=2, config=self.active_conn["client_config"]) as client:
-        
-                        logging.info(f"Switched to {addressing} mode for TC: {tc_id} Step: {step_desc}")
-                        service_int = int(service, 16)
-                        subfunc_int = int(subfunc, 16)
-                        expected_bytes = [int(b, 16) for b in expected.strip().split()]
-                        write_data_dict = self.active_conn["client_config"].get('write_data', {})
-                        logging.info(f"Loaded write data:{list(write_data_dict.keys())}")
-                        logging.info(f"{tc_id} - {step_desc}: SID={service}, Sub={subfunc}, Expected={expected_bytes}")
-        
-                        response = None
-        
-                        # Send UDS request
-                        if service_int == 0x10:
-                            raw_request = bytes([0x10, subfunc_int])
-                            client.conn.send(raw_request)
-                            response = client.conn.wait_frame(timeout=2)
-        
-                        elif service_int == 0x11:
-                            raw_request = bytes([0x11, subfunc_int])
-                            client.conn.send(raw_request)
-                            response = client.conn.wait_frame(timeout=2)
-        
-                        elif service_int == 0x22:
-                            did_hi = (subfunc_int >> 8) & 0xFF
-                            did_lo = subfunc_int & 0xFF
-                            raw_request = bytes([0x22, did_hi, did_lo])
-                            client.conn.send(raw_request)
-                            response = client.conn.wait_frame(timeout=2)
-        
-                        elif service_int == 0x2E:
-                            data_to_write = write_data_dict.get(subfunc_int)
-                            if data_to_write is None:
-                                raise ValueError(f"No write data configured for DID {hex(subfunc_int)}")
-                            response = client.write_data_by_identifier(subfunc_int, data_to_write)
-        
-                        elif service_int == 0x19:
-                            status_mask = 0xFF
-                            raw_request = bytes([0x19, subfunc_int, status_mask])
-                            client.conn.send(raw_request)
-                            response = client.conn.wait_frame(timeout=2)
-        
-                        elif service_int == 0x14:
-                            dtc_group_bytes = [(subfunc_int >> shift) & 0xFF for shift in (16, 8, 0)]
-                            raw_request = bytes([0x14] + dtc_group_bytes)
-                            client.conn.send(raw_request)
-                            response = client.conn.wait_frame(timeout=2)
-        
-                        elif service_int == 0x3E:
-                            raw_request = bytes([0x3E, 0x00])
-                            client.conn.send(raw_request)
-                            response = client.conn.wait_frame(timeout=2)
-        
-                        elif service_int == 0x85:
-                            raw_request = bytes([0x85, subfunc_int])
-                            client.conn.send(raw_request)
-                            response = client.conn.wait_frame(timeout=2)
-        
-                        elif service_int == 0x27:
-                            if subfunc_int % 2 == 1:
-                                response = client.request_seed(subfunc_int)
-                                if not response.positive:
-                                    raise Exception(f"NRC (seed): {hex(response.code)}")
-        
-                                seed = response.service_data.seed
-                                self.context[f"seed_{subfunc_int}"] = seed
-                                logging.info(f"Received Seed (subfunc {hex(subfunc_int)}): {seed.hex()}")
-                                time.sleep(0.5)
-        
-                                udp_ip = "192.168.10.220"
-                                udp_port = 5005
-                                max_retries = 3
-                                retry_delay = 1.0
-                                expected_key_length = 8
-        
-                                sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-                                sock.settimeout(5)
-        
-                                try:
-                                    for attempt in range(1, max_retries + 1):
-                                        try:
-                                            logging.info(f"Attempt {attempt}: Sending seed to PC...")
-                                            sock.sendto(seed.hex().encode(), (udp_ip, udp_port))
-                                            key, _ = sock.recvfrom(1024)
-                                            key = key.strip()
-        
-                                            if not key:
-                                                raise Exception("Received empty key from PC")
-                                            if len(key) != expected_key_length:
-                                                raise Exception(f"Invalid key length: expected {expected_key_length}, got {len(key)}")
-        
-                                            self.context[f"key_{subfunc_int + 1}"] = key
-                                            logging.info(f"Received Key (for subfunc {hex(subfunc_int + 1)}): {key}")
-                                            break
-        
-                                        except socket.timeout:
-                                            logging.warning(f"Attempt {attempt} - Timeout waiting for key.")
-                                            if attempt < max_retries:
-                                                time.sleep(retry_delay)
-                                            else:
-                                                raise Exception(f"Timeout after {max_retries} retries waiting for key from PC")
-                                        except Exception as e:
-                                            logging.exception(f"Attempt {attempt} - Error occurred:")
-                                            if attempt == max_retries:
-                                                raise
-                                finally:
-                                    sock.close()
-        
-                            elif subfunc_int % 2 == 0:
-                                key = self.context.get(f"key_{subfunc_int}")
-                                if not key:
-                                    raise Exception(f"No key available for subfunction {hex(subfunc_int)}. Ensure seed request precedes key send.")
-        
-                                response = client.send_key(subfunc_int, key)
-                                if not response.positive:
-                                    raise Exception(f"NRC (key): {hex(response.code)}")
-        
-                            else:
-                                raise ValueError(f"Unsupported subfunction for service 0x27: {hex(subfunc_int)}")
-        
-                        elif service_int == 0x28:
-                            communication_type = 0x00
-                            raw_request = bytes([0x28, subfunc_int, communication_type])
-                            client.conn.send(raw_request)
-                            response = client.conn.wait_frame(timeout=2)
-        
-                        else:
-                            raise ValueError(f"Unsupported service: {service}")
-        
-                        # === Response Verification ===
-                        if response is not None:
-                            raw_payload = None
-        
-                            if hasattr(response, "original_payload"):
-                                raw_payload = list(response.original_payload)
-                            elif hasattr(response, "data"):
-                                raw_payload = list(response.data)
-        
-                            if raw_payload is not None:
-                                status, failure_reason = verify_response(raw_payload, expected_bytes, tc_id, step_desc)
-                            else:
-                                status = "Fail"
-                                failure_reason = "Could not extract payload"
-                                logging.error(f"{tc_id} {step_desc} -> FAIL - {failure_reason}")
-                        else:
-                            status = "Fail"
-                            failure_reason = "No response received"
-                            logging.error(f"{tc_id} {step_desc} -> NO RESPONSE")
-        
-                except Exception as e:
-                    status = "Fail"
-                    failure_reason = str(e)
-                    logging.error(f"{tc_id} {step_desc} -> EXCEPTION - {failure_reason}")
-        
-                delay_key = service.upper()
-                delay = float(self.step_delays.get(delay_key, self.default_delay))
-                oled.display_centered_text(f"{tc_id}\n{step_desc[:20]}\n{status}")
-                time.sleep(delay)
-        
-        self.stop_logging()
-        time.sleep(1.5)
-     
-        full_log_path = self.can_logger.get_log_path() or "N/A"
-        can_log_file = os.path.basename(full_log_path)
+            delay_key = service.upper()
+            delay = float(self.step_delays.get(delay_key, self.default_delay))
+            oled.display_centered_text(f"{tc_id}\n{step_desc[:20]}\n{status}")
+            time.sleep(delay)
 
-
-
-20 11:27:00,705 [DEBUG] Main thread has started
-2025-06-20 11:27:00,707 [DEBUG] Relay thread has started
-2025-06-20 11:27:00,710 [INFO] Connection opened
-2025-06-20 11:27:00,711 [INFO] Switched to physical mode for TC: TC_ID-001 Step: Start default session
-2025-06-20 11:27:00,712 [INFO] Loaded write data:[61843, 61841, 61845, 61857, 61847, 61835, 61836, 61889, 61831]
-2025-06-20 11:27:00,712 [INFO] TC_ID-001 - Start default session: SID=0x10, Sub=0x01, Expected=[80]
-2025-06-20 11:27:00,712 [DEBUG] Sending 2 bytes : [1001]
-2025-06-20 11:27:00,713 [DEBUG] Enqueuing a SendRequest for 2 bytes and TAT=Physical
-2025-06-20 11:27:00,714 [DEBUG] Tx: <716> (08) [ ]	 0210010000000000
-2025-06-20 11:27:00,715 [DEBUG] We've been asked to write a message to the bus
-2025-06-20 11:27:00,716 [DEBUG] sending: Timestamp:        0.000000        ID: 0716    S Rx                DL:  8    02 10 01 00 00 00 00 00
-2025-06-20 11:27:00,735 [DEBUG] Rx: <71E> (08) [p]	 065001003201f4aa
-2025-06-20 11:27:00,736 [DEBUG] Received 6 bytes : [5001003201f4]
-2025-06-20 11:27:00,737 [ERROR] TC_ID-001 Start default session -> FAIL - Could not extract payload
-2025-06-20 11:27:00,738 [DEBUG] Stopping CanStack
-2025-06-20 11:27:00,740 [DEBUG] Main thread is exiting
-2025-06-20 11:27:00,785 [DEBUG] CanStack Stopped
-2025-06-20 11:27:00,788 [INFO] Connection closed
-
-
-2025-06-20 11:27:02,896 [INFO] Running Test Case: TC_ID-003
-2025-06-20 11:27:02,897 [DEBUG] Starting CanStack
-2025-06-20 11:27:02,898 [DEBUG] Main thread has started
-2025-06-20 11:27:02,900 [DEBUG] Relay thread has started
-2025-06-20 11:27:02,901 [INFO] Connection opened
-2025-06-20 11:27:02,902 [INFO] Switched to physical mode for TC: TC_ID-003 Step: Start Extended session
-2025-06-20 11:27:02,902 [INFO] Loaded write data:[61843, 61841, 61845, 61857, 61847, 61835, 61836, 61889, 61831]
-2025-06-20 11:27:02,903 [INFO] TC_ID-003 - Start Extended session: SID=0x10, Sub=0x03, Expected=[80]
-2025-06-20 11:27:02,904 [DEBUG] Sending 2 bytes : [1003]
-2025-06-20 11:27:02,904 [DEBUG] Enqueuing a SendRequest for 2 bytes and TAT=Physical
-2025-06-20 11:27:02,905 [DEBUG] Tx: <716> (08) [ ]	 0210030000000000
-2025-06-20 11:27:02,906 [DEBUG] We've been asked to write a message to the bus
-2025-06-20 11:27:02,907 [DEBUG] sending: Timestamp:        0.000000        ID: 0716    S Rx                DL:  8    02 10 03 00 00 00 00 00
-2025-06-20 11:27:02,925 [DEBUG] Rx: <71E> (08) [p]	 065003003201f4aa
-2025-06-20 11:27:02,926 [DEBUG] Received 6 bytes : [5003003201f4]
-2025-06-20 11:27:02,927 [ERROR] TC_ID-003 Start Extended session -> FAIL - Could not extract payload
-2025-06-20 11:27:02,927 [DEBUG] Stopping CanStack
-2025-06-20 11:27:02,928 [DEBUG] Main thread is exiting
-2025-06-20 11:27:02,976 [DEBUG] CanStack Stopped
-2025-06-20 11:27:02,977 [INFO] Connection closed
-
-
-2025-06-20 11:27:05,077 [INFO] Running Test Case: TC_ID-004
-2025-06-20 11:27:05,079 [DEBUG] Starting CanStack
-2025-06-20 11:27:05,081 [DEBUG] Main thread has started
-2025-06-20 11:27:05,083 [DEBUG] Relay thread has started
-2025-06-20 11:27:05,085 [INFO] Connection opened
-2025-06-20 11:27:05,086 [INFO] Switched to physical mode for TC: TC_ID-004 Step: Sub function not supported(10 FF)
-2025-06-20 11:27:05,087 [INFO] Loaded write data:[61843, 61841, 61845, 61857, 61847, 61835, 61836, 61889, 61831]
-2025-06-20 11:27:05,088 [INFO] TC_ID-004 - Sub function not supported(10 FF): SID=0x10, Sub=0xFF, Expected=[18]
-2025-06-20 11:27:05,089 [DEBUG] Sending 2 bytes : [10ff]
-2025-06-20 11:27:05,090 [DEBUG] Enqueuing a SendRequest for 2 bytes and TAT=Physical
-2025-06-20 11:27:05,096 [DEBUG] Tx: <716> (08) [ ]	 0210ff0000000000
+    self.stop_logging()
