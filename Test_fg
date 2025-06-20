@@ -7,3 +7,7 @@
 2025-06-20 13:42:22,567 [DEBUG] Main thread is exiting
 2025-06-20 13:42:22,611 [DEBUG] CanStack Stopped
 2025-06-20 13:42:22,612 [INFO] Connection closed
+#TC_ID/PC_ID , Testcase Description,Service ID,Sub service ID,Expected response data
+TC_ID-001 , Start default session,0x10,0x01,0x50
+TC_ID-003 , Start Extended session,0x10,0x03,0x50
+TC_ID-004 , Sub function not supported(10 FF),0x10,0xFF,0x7F
