@@ -1,3 +1,45 @@
+def verify_response(raw_payload, expected_bytes, tc_id, step_desc):
+    status = "Fail"
+    failure_reason = "-"
+
+    try:
+        expected_first_byte = expected_bytes[0]
+        actual_first_byte = raw_payload[0]
+
+        if expected_first_byte != 0x7F:
+            if actual_first_byte != 0x7F:
+                if raw_payload[:len(expected_bytes)] == expected_bytes:
+                    status = "Pass"
+                    logging.info(f"{tc_id} {step_desc} -> PASS")
+                else:
+                    failure_reason = f"Expected {expected_bytes}, got {raw_payload[:len(expected_bytes)]}"
+                    logging.warning(f"{tc_id} {step_desc} -> FAIL - {failure_reason}")
+            else:
+                nrc_code = raw_payload[2] if len(raw_payload) >= 3 else None
+                failure_reason = f"Expected Positive Response, but got NRC: {hex(nrc_code) if nrc_code is not None else 'Unknown'}"
+                logging.warning(f"{tc_id} {step_desc} -> FAIL - {failure_reason}")
+
+        else:
+            if actual_first_byte == 0x7F:
+                nrc_code = raw_payload[2] if len(raw_payload) >= 3 else None
+                if nrc_code == expected_bytes[-1]:
+                    status = "Pass"
+                    logging.info(f"{tc_id} {step_desc} -> PASS")
+                else:
+                    failure_reason = f"Expected NRC {hex(expected_bytes[-1])}, got {hex(nrc_code) if nrc_code is not None else 'Unknown'}"
+                    logging.warning(f"{tc_id} {step_desc} -> FAIL - {failure_reason}")
+            else:
+                failure_reason = f"Expected Negative Response ({hex(expected_bytes[-1])}), but got Positive Response"
+                logging.warning(f"{tc_id} {step_desc} -> FAIL - {failure_reason}")
+
+    except Exception as e:
+        failure_reason = str(e)
+        logging.error(f"{tc_id} {step_desc} -> EXCEPTION - {failure_reason}")
+
+    return status, failure_reason
+
+
+###
 def run_testcase(self, oled):
     if not self.check_memory(oled):
         return
