@@ -380,8 +380,11 @@ class UDSClient:
                                  time.sleep(2)
                         if service_int == 0x10:
                             try:
-                                # Prepare subfunction bytes (can be empty or multi-byte)
-                                subfunc_clean = subfunc.strip()
+                                # Clean and validate subfunction
+                                subfunc_clean = subfunc.strip().replace(" ", "")  # remove spaces
+                                if subfunc_clean and not all(c in "0123456789abcdefABCDEF" for c in subfunc_clean):
+                                    raise ValueError(f"Invalid hex in subfunction: {subfunc_clean}")
+
                                 subfunc_bytes = bytes.fromhex(subfunc_clean) if subfunc_clean else b''
 
                                 # Build and send raw request
@@ -389,25 +392,21 @@ class UDSClient:
                                 logging.info(f"{tc_id} - {step_desc}: Sending {raw_request.hex().upper()}")
 
                                 client.conn.send(raw_request)
-                                time.sleep(0.2)  # Wait before reading
-
+                                time.sleep(0.2)
                                 response_data = client.conn.wait_frame(timeout=2)
 
                                 if response_data:
                                     logging.info(f"{tc_id} - Received: {response_data.hex().upper()}")
-
                                     expected_bytes = [int(b, 16) for b in expected.strip().split()]
-
                                     if response_data[0] == expected_bytes[0]:
                                         logging.info(f"{tc_id} - {step_desc} -> PASS")
                                     else:
-                                        failure_reason = f"Unexpected SID: {response_data[0]:02X}"
-                                        logging.warning(f"{tc_id} - {step_desc} -> FAIL - {failure_reason}")
+                                        logging.warning(f"{tc_id} - {step_desc} -> FAIL - Unexpected SID: {response_data[0]:02X}")
                                 else:
-                                    logging.warning(f"{tc_id} - No response received (timeout or empty)")
+                                    logging.warning(f"{tc_id} - No response received")
 
                             except ValueError as ve:
-                                logging.error(f"{tc_id} - Invalid hex format: {str(ve)}")
+                                logging.error(f"{tc_id} - Hex Error: {str(ve)}")
                                 oled.display_centered_text(f"{tc_id}\nHex Error")
                             except Exception as e:
                                 logging.error(f"{tc_id} - Exception: {type(e).__name__} - {str(e)}")
@@ -415,6 +414,7 @@ class UDSClient:
                             finally:
                                 oled.display_centered_text(f"{tc_id}\n{step_desc[:20]}")
                                 time.sleep(2)
+
 
                             
                         elif service_int == 0x22:
