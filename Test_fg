@@ -1,52 +1,24 @@
--def verify_response(raw_payload, expected_bytes, tc_id, step_desc):
-    status = "Fail"
-    failure_reason = "-"
-
-    try:
-        expected_first_byte = expected_bytes[0]
-        actual_first_byte = raw_payload[0]
-
-        # --- Negative response expected ---
-        if expected_first_byte == 0x7F:
-            if actual_first_byte == 0x7F:
-                nrc_code = raw_payload[2] if len(raw_payload) >= 3 else None
-
-                if len(expected_bytes) == 1:
-                    # User gave only 0x7F → accept any NRC
-                    status = "Pass"
-                    logging.info(f"{tc_id} {step_desc} -> PASS (any NRC accepted because only 0x7F given)")
-                elif len(expected_bytes) == 3:
-                    # User gave full expected negative response → check
-                    if nrc_code == expected_bytes[-1]:
-                        status = "Pass"
-                        logging.info(f"{tc_id} {step_desc} -> PASS")
-                    else:
-                        failure_reason = f"Expected NRC {hex(expected_bytes[-1])}, got {hex(nrc_code) if nrc_code is not None else 'Unknown'}"
-                        logging.warning(f"{tc_id} {step_desc} -> FAIL - {failure_reason}")
-                else:
-                    failure_reason = f"Malformed expected bytes for negative response: {expected_bytes}"
-                    logging.error(f"{tc_id} {step_desc} -> FAIL - {failure_reason}")
-            else:
-                failure_reason = f"Expected Negative Response (0x7F), but got Positive Response: {raw_payload}"
-                logging.warning(f"{tc_id} {step_desc} -> FAIL - {failure_reason}")
-
-        # --- Positive response expected ---
-        else:
-            if actual_first_byte != 0x7F:
-                # Now — check first N bytes
-                if raw_payload[:len(expected_bytes)] == expected_bytes:
-                    status = "Pass"
-                    logging.info(f"{tc_id} {step_desc} -> PASS")
-                else:
-                    failure_reason = f"Expected {expected_bytes}, got {raw_payload[:len(expected_bytes)]}"
-                    logging.warning(f"{tc_id} {step_desc} -> FAIL - {failure_reason}")
-            else:
-                nrc_code = raw_payload[2] if len(raw_payload) >= 3 else None
-                failure_reason = f"Expected Positive Response, but got NRC: {hex(nrc_code) if nrc_code is not None else 'Unknown'}"
-                logging.warning(f"{tc_id} {step_desc} -> FAIL - {failure_reason}")
-
-    except Exception as e:
-        failure_reason = str(e)
-        logging.error(f"{tc_id} {step_desc} -> EXCEPTION - {failure_reason}")
-
-    return status, failure_reason
+2025-06-20 14:01:53,413 [INFO] Running Test Case: TC_ID-018
+2025-06-20 14:01:53,415 [DEBUG] Starting CanStack
+2025-06-20 14:01:53,417 [DEBUG] Main thread has started
+2025-06-20 14:01:53,418 [DEBUG] Relay thread has started
+2025-06-20 14:01:53,420 [INFO] Connection opened
+2025-06-20 14:01:53,421 [INFO] Switched to physical mode for TC: TC_ID-018 Step: Subfunction not supported
+2025-06-20 14:01:53,421 [INFO] Loaded write data:[61843, 61841, 61845, 61857, 61847, 61835, 61836, 61889, 61831]
+2025-06-20 14:01:53,422 [INFO] TC_ID-018 - Subfunction not supported: SID=0x28, Sub=8, Expected=[127]
+2025-06-20 14:01:53,423 [DEBUG] Sending 3 bytes : [280800]
+2025-06-20 14:01:53,424 [DEBUG] Enqueuing a SendRequest for 3 bytes and TAT=Physical
+2025-06-20 14:01:53,426 [DEBUG] Tx: <716> (08) [ ]	 0328080000000000
+2025-06-20 14:01:53,427 [DEBUG] We've been asked to write a message to the bus
+2025-06-20 14:01:53,429 [DEBUG] sending: Timestamp:        0.000000        ID: 0716    S Rx                DL:  8    03 28 08 00 00 00 00 00
+2025-06-20 14:01:53,444 [DEBUG] Rx: <71E> (08) [p]	 037f287faaaaaaaa
+2025-06-20 14:01:53,446 [DEBUG] Received 3 bytes : [7f287f]
+2025-06-20 14:01:53,447 [DEBUG] TC_ID-018 Subfunction not supported -> Received payload: [127, 40, 127]
+2025-06-20 14:01:53,448 [ERROR] TC_ID-018 Subfunction not supported -> FAIL - Could not extract payload: UDSClient.verify_response() takes 4 positional arguments but 5 were given
+2025-06-20 14:01:53,449 [DEBUG]
+#TC_ID/PC_ID , Testcase Description,Service ID,Sub service ID,Expected response data
+TC_ID-001 , Start default session,0x10,0x01,0x50
+TC_ID-003 , Start Extended session,0x10,0x03,0x50
+TC_ID-004 , Sub function not supported(10 FF),0x10,0xFF,0x7F
+TC_ID-012 , Incorrect message length,0x11,0x01 0x01,0x7F
+TC_ID-018 , Subfunction not supported,0x28,8,0x7F
