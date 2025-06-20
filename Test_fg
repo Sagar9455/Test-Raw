@@ -1,294 +1,183 @@
-import os
-import can
-import logging
-from datetime import datetime
-from can.io.asc import ASCWriter
+def run_testcase(self, oled):
+    if not self.check_memory(oled):
+        return
 
-class CANLogger:
-    def __init__(self, channel='can0', interface='socketcan', can_fd=False, 
-                 log_dir='/home/mobase/UDS_Tool_Raspberry_Pi/MKBD/udsoncan/output/can_logs', 
-                 filters=None):
-        self.channel = channel
-        self.interface = interface
-        self.can_fd = can_fd
-        self.log_dir = log_dir
-        self.filters = filters
+    self.start_logging(log_name_suffix="Testcase")
+    grouped_cases = load_testcases()
+    self.context = {}
 
-        self.bus = None
-        self.notifier = None
-        self.writer = None
-        self.file = None
-        self.log_path = None
+    for tc_id, steps in grouped_cases.items():
+        print("\n")
+        logging.info(f"Running Test Case: {tc_id}")
 
-    def start(self, filename=None):
-        if self.notifier or self.writer:
-            self.stop()
+        for step in steps:
+            tc_id, step_desc, service, subfunc, expected, *rest = step
+            addressing = rest[0].strip().lower() if rest else "physical"
 
-        os.makedirs(self.log_dir, exist_ok=True)
+            try:
+                self.switch_mode(addressing)
 
-        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        self.log_path = os.path.join(self.log_dir, filename)
+                with Client(self.active_conn["conn"], request_timeout=2, config=self.active_conn["client_config"]) as client:
 
-        try:
-            self.file = open(self.log_path, 'w')
+                    logging.info(f"Switched to {addressing} mode for TC: {tc_id} Step: {step_desc}")
+                    service_int = int(service, 16)
+                    subfunc_int = int(subfunc, 16)
+                    expected_bytes = [int(b, 16) for b in expected.strip().split()]
+                    write_data_dict = self.active_conn["client_config"].get('write_data', {})
+                    logging.info(f"Loaded write data:{list(write_data_dict.keys())}")
+                    logging.info(f"{tc_id} - {step_desc}: SID={service}, Sub={subfunc}, Expected={expected_bytes}")
 
-            self.bus = can.interface.Bus(
-                channel=self.channel,
-                bustype=self.interface,
-                can_filters=self.filters
-            )
+                    response = None
 
-            self.writer = ASCWriter(self.file)
-            self.notifier = can.Notifier(self.bus, [self.writer])
+                    # Send UDS request
+                    if service_int == 0x10:
+                        raw_request = bytes([0x10, subfunc_int])
+                        client.conn.send(raw_request)
+                        response = client.conn.wait_frame(timeout=2)
 
-            logging.info(f"CAN logging started: {self.log_path}")
+                    elif service_int == 0x11:
+                        raw_request = bytes([0x11, subfunc_int])
+                        client.conn.send(raw_request)
+                        response = client.conn.wait_frame(timeout=2)
 
-        except Exception as e:
-            logging.error(f"[CANLogger] Failed to start: {e}")
+                    elif service_int == 0x22:
+                        did_hi = (subfunc_int >> 8) & 0xFF
+                        did_lo = subfunc_int & 0xFF
+                        raw_request = bytes([0x22, did_hi, did_lo])
+                        client.conn.send(raw_request)
+                        response = client.conn.wait_frame(timeout=2)
 
-    def stop(self):
-        try:
-            if self.notifier:
-                self.notifier.stop()
+                    elif service_int == 0x2E:
+                        data_to_write = write_data_dict.get(subfunc_int)
+                        if data_to_write is None:
+                            raise ValueError(f"No write data configured for DID {hex(subfunc_int)}")
+                        response = client.write_data_by_identifier(subfunc_int, data_to_write)
 
-            if self.writer:
-                self.writer.stop()
+                    elif service_int == 0x19:
+                        status_mask = 0xFF
+                        raw_request = bytes([0x19, subfunc_int, status_mask])
+                        client.conn.send(raw_request)
+                        response = client.conn.wait_frame(timeout=2)
 
-            if self.file:
-                self.file.flush()
-                self.file.write('end of logfile\n')
-                self.file.close()
+                    elif service_int == 0x14:
+                        dtc_group_bytes = [(subfunc_int >> shift) & 0xFF for shift in (16, 8, 0)]
+                        raw_request = bytes([0x14] + dtc_group_bytes)
+                        client.conn.send(raw_request)
+                        response = client.conn.wait_frame(timeout=2)
 
-            logging.info(f"CAN logging stopped: {self.log_path}")
-            print(f"[CANLogger] Log file saved to: {self.log_path}")
+                    elif service_int == 0x3E:
+                        raw_request = bytes([0x3E, 0x00])
+                        client.conn.send(raw_request)
+                        response = client.conn.wait_frame(timeout=2)
 
-        except Exception as e:
-            logging.error(f"[CANLogger] Error during stop: {e}")
+                    elif service_int == 0x85:
+                        raw_request = bytes([0x85, subfunc_int])
+                        client.conn.send(raw_request)
+                        response = client.conn.wait_frame(timeout=2)
 
-        self.bus = None
-        self.notifier = None
-        self.writer = None
-        self.file = None
+                    elif service_int == 0x27:
+                        if subfunc_int % 2 == 1:
+                            response = client.request_seed(subfunc_int)
+                            if not response.positive:
+                                raise Exception(f"NRC (seed): {hex(response.code)}")
 
-    def get_log_path(self):
-        return self.log_path
-#####
+                            seed = response.service_data.seed
+                            self.context[f"seed_{subfunc_int}"] = seed
+                            logging.info(f"Received Seed (subfunc {hex(subfunc_int)}): {seed.hex()}")
+                            time.sleep(0.5)
 
-import os
-import logging
-from drivers.can_logger import CANLogger
-from drivers.safe_ascii_codec import SafeAsciiCodec
-from udsoncan.client import Client
-from udsoncan.configs import default_client_config
+                            udp_ip = "192.168.10.220"
+                            udp_port = 5005
+                            max_retries = 3
+                            retry_delay = 1.0
+                            expected_key_length = 8
 
-class UDSClient:
-    def __init__(self, config):
-        self.config = config
+                            sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+                            sock.settimeout(5)
 
-        can_cfg = config["uds"]["can"]
-        isotp_cfg = config["uds"]["isotp"]
-        timing_cfg = config["uds"]["timing"]
-        self.uds_config = config["uds"]
-        target_ecu = config["uds"].get("target_ecu", "Unknown ECU")
+                            try:
+                                for attempt in range(1, max_retries + 1):
+                                    try:
+                                        logging.info(f"Attempt {attempt}: Sending seed to PC...")
+                                        sock.sendto(seed.hex().encode(), (udp_ip, udp_port))
+                                        key, _ = sock.recvfrom(1024)
+                                        key = key.strip()
 
-        self.context = {}
+                                        if not key:
+                                            raise Exception("Received empty key from PC")
+                                        if len(key) != expected_key_length:
+                                            raise Exception(f"Invalid key length: expected {expected_key_length}, got {len(key)}")
 
-        self.info_dids = self.uds_config.get("ecu_information_dids", {})
-        self.decode_dids = self.uds_config.get("decoding_dids", {})
-        self.write_data_dict = self.uds_config.get("write_data", {})
-        self.step_delays = self.uds_config.get("delays", {})
-        self.default_delay = self.step_delays.get("default", 0.5)
+                                        self.context[f"key_{subfunc_int + 1}"] = key
+                                        logging.info(f"Received Key (for subfunc {hex(subfunc_int + 1)}): {key}")
+                                        break
 
-        self.client_config = default_client_config.copy()
-        self.client_config["p2_timeout"] = timing_cfg["p2_client"] / 1000.0
-        self.client_config["p2_star_timeout"] = timing_cfg["p2_extended_client"] / 1000.0
-        self.client_config["s3_client_timeout"] = timing_cfg["s3_client"] / 1000.0
-        self.client_config["exception_on_negative_response"] = False
-        self.client_config["exception_on_unexpected_response"] = False
-        self.client_config["exception_on_invalid_response"] = False
-        self.client_config["use_server_timing"] = False
+                                    except socket.timeout:
+                                        logging.warning(f"Attempt {attempt} - Timeout waiting for key.")
+                                        if attempt < max_retries:
+                                            time.sleep(retry_delay)
+                                        else:
+                                            raise Exception(f"Timeout after {max_retries} retries waiting for key from PC")
+                                    except Exception as e:
+                                        logging.exception(f"Attempt {attempt} - Error occurred:")
+                                        if attempt == max_retries:
+                                            raise
+                            finally:
+                                sock.close()
 
-        self.client_config["data_identifiers"] = {
-            int(did_str, 16): SafeAsciiCodec(length)
-            for did_str, length in self.decode_dids.items()
-        }
-        self.client_config["write_data"] = {
-            int(did_str, 16): data_str
-            for did_str, data_str in self.write_data_dict.items()
-        }
+                        elif subfunc_int % 2 == 0:
+                            key = self.context.get(f"key_{subfunc_int}")
+                            if not key:
+                                raise Exception(f"No key available for subfunction {hex(subfunc_int)}. Ensure seed request precedes key send.")
 
-        addr_modes_cfg = self.uds_config["addressing_modes"]
-        self.physical_conn = self._create_connection(addr_modes_cfg.get("physical"), can_cfg, isotp_cfg, "physical")
-        self.functional_conn = self._create_connection(addr_modes_cfg.get("functional"), can_cfg, isotp_cfg, "functional")
+                            response = client.send_key(subfunc_int, key)
+                            if not response.positive:
+                                raise Exception(f"NRC (key): {hex(response.code)}")
 
-        self.active_conn = self.physical_conn
-        self.active_mode = "physical"
+                        else:
+                            raise ValueError(f"Unsupported subfunction for service 0x27: {hex(subfunc_int)}")
 
-        self.allowed_ids = list({
-            int(addr_modes_cfg.get("physical", {}).get("tx_id", "0"), 16),
-            int(addr_modes_cfg.get("physical", {}).get("rx_id", "0"), 16),
-            int(addr_modes_cfg.get("functional", {}).get("tx_id", "0"), 16),
-            int(addr_modes_cfg.get("functional", {}).get("rx_id", "0"), 16),
-        })
+                    elif service_int == 0x28:
+                        communication_type = 0x00
+                        raw_request = bytes([0x28, subfunc_int, communication_type])
+                        client.conn.send(raw_request)
+                        response = client.conn.wait_frame(timeout=2)
 
-        self.allowed_tx_ids = [
-            int(addr_modes_cfg.get("physical", {}).get("tx_id", "0"), 16),
-            int(addr_modes_cfg.get("functional", {}).get("tx_id", "0"), 16)
-        ]
+                    else:
+                        raise ValueError(f"Unsupported service: {service}")
 
-        self.allowed_rx_ids = [
-            int(addr_modes_cfg.get("physical", {}).get("rx_id", "0"), 16),
-            int(addr_modes_cfg.get("functional", {}).get("rx_id", "0"), 16)
-        ]
-        
-        # Prepare CANLogger
-        filters = self._get_can_filters()
+                    # === Response Verification ===
+                    if response is not None:
+                        raw_payload = None
 
-        self.project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
-        log_dir = os.path.join(self.project_root, 'output', 'can_logs')
+                        if hasattr(response, "original_payload"):
+                            raw_payload = list(response.original_payload)
+                        elif hasattr(response, "data"):
+                            raw_payload = list(response.data)
 
-        self.can_logger = CANLogger(channel=can_cfg["channel"], 
-                                    interface=can_cfg["interface"], 
-                                    log_dir=log_dir, 
-                                    filters=filters)
+                        if raw_payload is not None:
+                            status, failure_reason = verify_response(raw_payload, expected_bytes, tc_id, step_desc)
+                        else:
+                            status = "Fail"
+                            failure_reason = "Could not extract payload"
+                            logging.error(f"{tc_id} {step_desc} -> FAIL - {failure_reason}")
+                    else:
+                        status = "Fail"
+                        failure_reason = "No response received"
+                        logging.error(f"{tc_id} {step_desc} -> NO RESPONSE")
 
-    def _get_can_filters(self):
-        logging_mode = self.config.get("logging", {}).get("filters", "only_udsoncan").lower()
+            except Exception as e:
+                status = "Fail"
+                failure_reason = str(e)
+                logging.error(f"{tc_id} {step_desc} -> EXCEPTION - {failure_reason}")
 
-        if logging_mode == "all":
-            logging.info("CANLogger: Logging ALL CAN messages (no filters)")
-            return None
+            delay_key = service.upper()
+            delay = float(self.step_delays.get(delay_key, self.default_delay))
+            oled.display_centered_text(f"{tc_id}\n{step_desc[:20]}\n{status}")
+            time.sleep(delay)
 
-        addressing_modes = self.config["uds"]["addressing_modes"]
+    self.stop_logging()
+    time.sleep(1.5)
 
-        tx_id_phys = int(addressing_modes["physical"]["tx_id"], 16)
-        rx_id_phys = int(addressing_modes["physical"]["rx_id"], 16)
-
-        tx_id_func = int(addressing_modes["functional"]["tx_id"], 16)
-        rx_id_func = int(addressing_modes["functional"]["rx_id"], 16)
-
-        filters = [
-            {"can_id": tx_id_phys, "can_mask": 0x7FF, "extended": False},
-            {"can_id": rx_id_phys, "can_mask": 0x7FF, "extended": False},
-            {"can_id": tx_id_func, "can_mask": 0x7FF, "extended": False},
-            {"can_id": rx_id_func, "can_mask": 0x7FF, "extended": False}
-        ]
-
-        logging.info("CANLogger: Logging only UDS traffic (tx/rx physical+functional)")
-        return filters
-
-    def _create_connection(self, addr_mode_cfg, can_cfg, isotp_cfg, mode_name):
-        # Your existing connection logic (unchanged)
-        pass
-        
-        
-        
-      # Now generate report
-generate_html_report(
-    messages_by_tc,
-    output_path,
-    asc_filename,
-    start_ts,
-    end_ts,
-    ecu_info_data=ecu_info_data,
-    ecu_name=ecu_name,
-    target_ecu=target_ecu
-)  
-
-
-
-
-def generate_html_report(messages_by_tc, output_path, asc_filename, start_ts, end_ts, 
-                         ecu_info_data=None, ecu_name=None, target_ecu=None):
-    total = len(messages_by_tc)
-    passed = sum(1 for tc in messages_by_tc.values() if all(msg["status"] == "Pass" for msg in tc))
-    failed = total - passed
-    duration = end_ts - start_ts
-    generated_time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-
-    html = f"""<html><head><title>UDS Diagnostic Report</title>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <style>
-        body {{ font-family: Arial; margin: 20px; }}
-        .pass {{ color: green; font-weight: bold; }}
-        .fail {{ color: red; font-weight: bold; }}
-        summary {{ font-weight: bold; cursor: pointer; }}
-        table {{ border-collapse: collapse; width: 100%; margin-top: 10px; }}
-        th, td {{ border: 1px solid #ccc; padding: 8px; }}
-        th {{ background: #f0f0f0; }}
-        #chart-container {{ width: 300px; margin: 20px auto; }}
-    </style></head><body>
-    
-    <div style="text-align: center;">
-        <h1>UDS Diagnostic Report</h1>
-    </div>
-    
-    <div style="display: flex; justify-content: space-between; margin-bottom: 20px; align-items: flex-start;">
-        <div style="flex: 1; text-align: left;">
-            <p><strong>Generated:</strong> {generated_time}</p>
-            <p><strong>CAN Log File:</strong> {asc_filename}</p>
-            <p><strong>Total Test Cases:</strong> {total}</p>
-            <p class="pass"><strong>Passed:</strong> {passed}</p>
-            <p class="fail"><strong>Failed:</strong> {failed}</p>
-            <p><strong>Test Duration:</strong> {duration:.3f} seconds</p>
-        </div>
-
-        <div style="flex: 0 0 auto; text-align: left; margin-left: 40px;">
-            <p><strong>ECU Information:</strong></p>
-    """
-
-    # ECU Name and Target ECU
-    if ecu_name:
-        html += f"<p><strong>ECU Name:</strong> {escape(ecu_name)}</p>"
-    if target_ecu:
-        html += f"<p><strong>Target ECU:</strong> {escape(target_ecu)}</p>"
-
-    # Other ECU Info
-    if ecu_info_data:
-        for key, value in ecu_info_data.items():
-            html += f"<p>{escape(key)}: {escape(value)}</p>"
-
-    html += "</div></div>"
-
-    html += """
-    <div id="chart-container"><canvas id="passFailChart"></canvas></div>
-    <script>
-        const ctx = document.getElementById('passFailChart').getContext('2d');
-        new Chart(ctx, {
-            type: 'pie',
-            data: {
-                labels: ['Passed', 'Failed'],
-                datasets: [{
-                    data: [%d, %d],
-                    backgroundColor: ['#4CAF50', '#F44336']
-                }]
-            },
-            options: {
-                responsive: true,
-                plugins: {
-                    legend: { position: 'bottom' },
-                    title: { display: true, text: 'Test Case Results' }
-                }
-            }
-        });
-    </script>
-    <hr><br>
-    """ % (passed, failed)
-
-    # --- Test Case Results Section ---
-    for tc_id, steps in messages_by_tc.items():
-        tc_status = "Pass" if all(msg["status"] == "Pass" for msg in steps) else "Fail"
-        tc_class = "pass" if tc_status == "Pass" else "fail"
-        html += f"<details><summary class='{tc_class}'>{escape(tc_id)} - {tc_status}</summary>\n"
-        html += "<table><tr><th>Timestamp</th><th>Step Description</th><th>Status</th><th>Failure Reason</th></tr>\n"
-        for msg in steps:
-            html += f"<tr><td>{escape(msg['timestamp'])}</td><td>{escape(msg['step_desc'])}</td>"
-            html += f"<td>{escape(msg['status'])}</td><td>{escape(msg.get('failure_reason','-'))}</td></tr>\n"
-        html += "</table></details>\n"
-
-    html += "</body></html>"
-
-    with open(output_path, "w", encoding="utf-8") as f:
-        f.write(html)
-
-    print(f"✅ HTML report generated: {output_path}")
+    full_log_path = self.can_logger.get_log_path() or "N/A"
+    can_log_file = os.path.basename(full_log_path)
