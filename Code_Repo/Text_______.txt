@@ -1,0 +1,6 @@
+raw_request = bytes([0x11])
+client.conn.send(raw_request)
+response = client.conn.wait_frame(timeout=2)
+
+if response:
+    print("Response:", response.hex().upper())
