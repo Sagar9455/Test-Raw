@@ -1,55 +1,9 @@
-
-2025-06-20 11:55:16,950 [INFO] Running Test Case: TC_ID-009
-2025-06-20 11:55:16,950 [DEBUG] Starting CanStack
-2025-06-20 11:55:16,952 [DEBUG] Main thread has started
-2025-06-20 11:55:16,953 [DEBUG] Relay thread has started
-2025-06-20 11:55:16,954 [INFO] Connection opened
-2025-06-20 11:55:16,954 [INFO] Switched to physical mode for TC: TC_ID-009 Step: Sub function not supported(out ofrange)(11 08)
-2025-06-20 11:55:16,955 [INFO] Loaded write data:[61843, 61841, 61845, 61857, 61847, 61835, 61836, 61889, 61831]
-2025-06-20 11:55:16,956 [INFO] TC_ID-009 - Sub function not supported(out ofrange)(11 08): SID=0x11, Sub=0x08, Expected=[18]
-2025-06-20 11:55:16,956 [DEBUG] Sending 2 bytes : [1108]
-2025-06-20 11:55:16,957 [DEBUG] Enqueuing a SendRequest for 2 bytes and TAT=Physical
-2025-06-20 11:55:16,958 [DEBUG] Tx: <716> (08) [ ]	 0211080000000000
-2025-06-20 11:55:16,958 [DEBUG] We've been asked to write a message to the bus
-2025-06-20 11:55:16,959 [DEBUG] sending: Timestamp:        0.000000        ID: 0716    S Rx                DL:  8    02 11 08 00 00 00 00 00
-2025-06-20 11:55:16,974 [DEBUG] Rx: <71E> (08) [p]	 037f1112aaaaaaaa
-2025-06-20 11:55:16,975 [DEBUG] Received 3 bytes : [7f1112]
-2025-06-20 11:55:16,976 [DEBUG] TC_ID-009 Sub function not supported(out ofrange)(11 08) -> Received payload: [127, 17, 18]
-2025-06-20 11:55:16,977 [WARNING] TC_ID-009 Sub function not supported(out ofrange)(11 08) -> FAIL - Expected Positive Response, but got NRC: 0x12
-2025-06-20 11:55:16,977 [WARNING] TC_ID-009 Sub function not supported(out ofrange)(11 08) -> FAIL - Expected Positive Response, but got NRC: 0x12
-2025-06-20 11:55:16,978 [DEBUG] Stopping CanStack
-2025-06-20 11:55:16,978 [DEBUG] Main thread is exiting
-2025-06-20 11:55:17,025 [DEBUG] CanStack Stopped
-2025-06-20 11:55:17,026 [INFO] Connection closed
-
-
-
-#TC_ID/PC_ID , Testcase Description,Service ID,Sub service ID,Expected response data
-TC_ID-001 , Start default session,0x10,0x01,0x50
-TC_ID-003 , Start Extended session,0x10,0x03,0x50
-TC_ID-004 , Sub function not supported(10 FF),0x10,0xFF,0x12
-TC_ID-007 , Hard reset,0x11,0x01,0x51
-TC_ID-008 , Soft reset,0x11,0x03,0x51
-TC_ID-009 , Sub function not supported(out ofrange)(11 08) ,0x11,0x08,0x12
-TC_ID-012 , Incorrect message length,0x11,0x01 0x01,0x7F
-TC_ID-018 , Subfunction not supported,0x28,8,0x12
-PC_ID-001 , Start Default session,0x10,0x01,0x50
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+-06-20 13:42:22,561 [DEBUG] Rx: <71E> (08) [p]	 037f8512aaaaaaaa
+2025-06-20 13:42:22,562 [DEBUG] Received 3 bytes : [7f8512]
+2025-06-20 13:42:22,564 [DEBUG] TC_ID-030 PreCondition: PC_ID-02 Test case:Sub function not supported(not valid sub function) -> Received payload: [127, 133, 18]
+2025-06-20 13:42:22,564 [WARNING] TC_ID-030 PreCondition: PC_ID-02 Test case:Sub function not supported(not valid sub function) -> FAIL - Expected NRC 0x7f, got 0x12
+2025-06-20 13:42:22,565 [WARNING] TC_ID-030 PreCondition: PC_ID-02 Test case:Sub function not supported(not valid sub function) -> FAIL - Expected NRC 0x7f, got 0x12
+2025-06-20 13:42:22,565 [DEBUG] Stopping CanStack
+2025-06-20 13:42:22,567 [DEBUG] Main thread is exiting
+2025-06-20 13:42:22,611 [DEBUG] CanStack Stopped
+2025-06-20 13:42:22,612 [INFO] Connection closed
