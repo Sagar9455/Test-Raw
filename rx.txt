@@ -1,19 +1,27 @@
 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9999999
-      2025-06-23 16:09:01,728 [DEBUG] CanStack Stopped
-2025-06-23 16:09:01,729 [INFO] Connection closed
-
-
-2025-06-23 16:09:01,733 [INFO] Running Test Case: PC_ID-007
-Traceback (most recent call last):
-  File "/home/mobase/Final_test/input/application/main.py", line 263, in <module>
-    main()
-  File "/home/mobase/Final_test/input/application/main.py", line 260, in main
-    app.main_menu()
-  File "/home/mobase/Final_test/input/application/main.py", line 167, in main_menu
-    self.uds.run_testcase(self.oled)
-  File "/home/mobase/Final_test/input/drivers/uds_client.py", line 403, in run_testcase
-    addressing = rest[0].strip().lower() if rest else "physical"
-                                            ^^^^
-NameError: name 'rest' is not defined
-
+18:58:50,540 [DEBUG] sending: Timestamp:        0.000000        ID: 0716    S Rx                DL:  8    02 10 03 00 00 00 00 00
+2025-06-23 18:58:50,559 [DEBUG] Rx: <71E> (08) [p]	 065003003201f4aa
+2025-06-23 18:58:50,560 [DEBUG] Received 6 bytes : [5003003201f4]
+2025-06-23 18:58:50,562 [DEBUG] Received response from server
+2025-06-23 18:58:50,563 [INFO] Received positive response for service DiagnosticSessionControl (0x10) from server.
+2025-06-23 18:58:50,764 [INFO] [ECU Info] Processing ECU_INFO_1
+2025-06-23 18:58:50,766 [DEBUG] [ECU Info] Step=('ECU_INFO_1', 'S/W Version', '0x22', '0xF1DD', '0x62', '', 'physical')
+2025-06-23 18:58:50,881 [ERROR] [ECU Info] S/W Version - Exception: cannot access local variable 'response' where it is not associated with a value
+2025-06-23 18:58:50,984 [INFO] [ECU Info] Processing ECU_INFO_2
+2025-06-23 18:58:50,986 [DEBUG] [ECU Info] Step=('ECU_INFO_2', 'B-CAN Version', '0x22', '0xF100', '0x62', '', 'physical')
+2025-06-23 18:58:51,102 [ERROR] [ECU Info] B-CAN Version - Exception: cannot access local variable 'response' where it is not associated with a value
+2025-06-23 18:58:51,204 [INFO] [ECU Info] Processing ECU_INFO_3
+2025-06-23 18:58:51,205 [DEBUG] [ECU Info] Step=('ECU_INFO_3', 'Manufacturing Date', '0x22', '0xF18B', '0x62', '', 'physical')
+2025-06-23 18:58:51,326 [ERROR] [ECU Info] Manufacturing Date - Exception: cannot access local variable 'response' where it is not associated with a value
+2025-06-23 18:58:51,427 [INFO] [ECU Info] Processing ECU_INFO_4
+2025-06-23 18:58:51,431 [DEBUG] [ECU Info] Step=('ECU_INFO_4', 'ECU_Serial Number', '0x22', '0xF18C', '0x62', '', 'physical')
+2025-06-23 18:58:51,558 [ERROR] [ECU Info] ECU_Serial Number - Exception: cannot access local variable 'response' where it is not associated with a value
+2025-06-23 18:58:51,659 [INFO] [ECU Info] Processing ECU_INFO_5
+2025-06-23 18:58:51,664 [DEBUG] [ECU Info] Step=('ECU_INFO_5', 'H/W Version', '0x22', '0xF193', '0x62', '', 'physical')
+2025-06-23 18:58:51,788 [ERROR] [ECU Info] H/W Version - Exception: cannot access local variable 'response' where it is not associated with a value
+2025-06-23 18:58:51,890 [DEBUG] Stopping CanStack
+2025-06-23 18:58:51,897 [DEBUG] Main thread is exiting
+2025-06-23 18:58:51,935 [DEBUG] CanStack Stopped
+2025-06-23 18:58:51,937 [INFO] Connection closed
+2025-06-23 18:58:52,563 [ERROR] [CANLogger] Error during stop: I/O operation on closed file.
 
