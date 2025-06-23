@@ -1,39 +1,39 @@
-elif service_int == 0x10:
+if service_int == 0x2E:
     try:
-        expected_bytes = [int(b, 16) for b in expected.strip().split()]
+        did_str = subfunc.strip()
+        if not did_str:
+            raise ValueError(f"{tc_id} - Empty DID for 0x2E service")
 
-        subfunc_clean = subfunc.strip() if subfunc else ""
-        if subfunc_clean:
-            try:
-                # Supports multi-byte subfunctions like "0102"
-                subfunc_bytes = bytes.fromhex(subfunc_clean)
-            except ValueError as ve:
-                logging.error(f"{tc_id} - Invalid subfunction hex format: '{subfunc_clean}'")
-                oled.display_centered_text(f"{tc_id}\nInvalid SubFunc")
-                continue
+        did_int = int(did_str, 16)
+        did_hi = (did_int >> 8) & 0xFF
+        did_lo = did_int & 0xFF
+
+        # Prepare write data
+        if data_str := tc["data"].strip():
+            data_bytes = bytes.fromhex(data_str)
         else:
-            subfunc_bytes = b''  # No subfunction
+            raise ValueError(f"{tc_id} - No write data provided for DID {hex(did_int)}")
 
-        raw_request = bytes([0x10]) + subfunc_bytes
-        logging.info(f"{tc_id} - {step_desc}: Sending {raw_request.hex().upper()}")
+        # Construct raw UDS 0x2E request
+        raw_request = bytes([0x2E, did_hi, did_lo]) + data_bytes
+        logging.info(f"{tc_id} - Sending RAW: {raw_request.hex().upper()}")
 
         client.conn.send(raw_request)
-        response_data = client.conn.wait_frame(timeout=2)
+        time.sleep(0.2)
+        response = client.conn.wait_frame(timeout=2)
 
-        if response_data:
-            logging.info(f"{tc_id} - Received: {response_data.hex().upper()}")
-            if response_data[0] == expected_bytes[0]:
-                logging.info(f"{tc_id} - {step_desc} -> PASS")
-            else:
-                failure_reason = f"Unexpected SID: {response_data[0]:02X}"
-                logging.warning(f"{tc_id} - {step_desc} -> FAIL - {failure_reason}")
+        if response is None:
+            raise TimeoutError(f"{tc_id} - No response received")
+
+        raw_payload = list(response)
+        logging.debug(f"{tc_id} - Received: {raw_payload}")
+
+        if raw_payload[0] == 0x6E and raw_payload[1] == did_hi and raw_payload[2] == did_lo:
+            logging.info(f"{tc_id} - 0x2E WriteDataByIdentifier -> PASS")
         else:
-            logging.warning(f"{tc_id} - No response received")
-
+            failure_reason = f"NRC/Invalid Response: {raw_payload}"
+            logging.warning(f"{tc_id} - FAIL - {failure_reason}")
     except Exception as e:
         logging.error(f"{tc_id} - Exception: {type(e).__name__} - {str(e)}")
         oled.display_centered_text(f"{tc_id}\nError: {str(e)[:16]}")
         time.sleep(2)
-
-    oled.display_centered_text(f"{tc_id}\n{step_desc[:20]}")
-    time.sleep(2)
