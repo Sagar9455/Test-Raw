@@ -1,0 +1,66 @@
+def load_write_data(txt_path):
+    write_data_dict = {}
+    with open(txt_path, "r", encoding="utf-8") as file:
+        for line in file:
+            line = line.strip()
+            if not line or line.startswith("#"):
+                continue
+            parts = line.split(",")
+            if len(parts) >= 7:
+                try:
+                    did_str = parts[3].strip()
+                    data_str = parts[6].strip()
+                    if did_str and data_str:
+                        did = int(did_str, 16)
+                        write_data_dict[did] = data_str
+                except Exception as e:
+                    print(f"Skipping line due to error: {e} => {line}")
+    return write_data_dict
+
+
+
+
+
+if service_int == 0x2E:  # WriteDataByIdentifier - RAW
+    try:
+        # Parse DID from subfunc field
+        did_int = int(subfunc.strip(), 16)
+        did_hi = (did_int >> 8) & 0xFF
+        did_lo = did_int & 0xFF
+
+        # Fetch write data
+        data_to_write = write_data_dict.get(did_int)
+        if data_to_write is None:
+            raise ValueError(f"No write data configured for DID {hex(did_int)}")
+
+        # Convert data to bytes
+        if isinstance(data_to_write, str):
+            data_bytes = bytes.fromhex(data_to_write.strip())
+        elif isinstance(data_to_write, bytes):
+            data_bytes = data_to_write
+        elif isinstance(data_to_write, list):
+            data_bytes = bytes(data_to_write)
+        else:
+            raise ValueError("write_data_dict values must be hex string, list of ints, or bytes")
+
+        # Build UDS request: 2E + DID + data
+        raw_request = bytes([0x2E, did_hi, did_lo]) + data_bytes
+
+        # Send request
+        logging.info(f"{tc_id} - RAW 2E: Sending {raw_request.hex().upper()}")
+        self.stack.send(raw_request)
+        time.sleep(0.2)
+        response_data = self.stack.recv()
+
+        if response_data:
+            logging.info(f"{tc_id} - RAW 2E: Received {response_data.hex().upper()}")
+            if response_data[0] == 0x6E:
+                logging.info(f"{tc_id} - 0x2E WriteDataByIdentifier -> PASS")
+            else:
+                logging.warning(f"{tc_id} - 0x2E -> FAIL: Unexpected response SID {response_data[0]:02X}")
+        else:
+            logging.warning(f"{tc_id} - No response received")
+
+    except Exception as e:
+        logging.error(f"{tc_id} - 0x2E raw exception: {type(e).__name__} - {str(e)}")
+        oled.display_centered_text(f"{tc_id}\nError: {str(e)[:16]}")
