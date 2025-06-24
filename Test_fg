@@ -1,3 +1,158 @@
+###3
+def parse_asc_file(asc_file_path, allowed_tx_ids, allowed_rx_ids):
+    messages_by_tc = defaultdict(list)
+    current_request = None
+    start_ts = None
+    end_ts = None
+    awaiting_multiframe = False
+    skip_next_fc = False
+    rx_multi_response_pending = False
+    rx_multi_response_first = None
+
+    mode = "ECU_INFO"
+    current_pc_id = None
+
+    allowed_tx_ids = set(f"{id:X}" for id in allowed_tx_ids)
+    allowed_rx_ids = set(f"{id:X}" for id in allowed_rx_ids)
+
+    with open(asc_file_path, "r", encoding="utf-8", errors="ignore") as f:
+        for line in f:
+            line = line.strip()
+            if not line or not re.match(r"^\d+\.\d+", line):
+                continue
+
+            msg = parse_line(line)
+            if not msg:
+                continue
+
+            can_id = msg["can_id"].upper()
+
+            # --- Process Tx ---
+            if msg["direction"] == "Tx" and can_id in allowed_tx_ids:
+                data_bytes = msg["data_bytes"]
+
+                # --- Phase change ---
+                if msg.get("tc_id") and msg["tc_id"].startswith("PC_ID"):
+                    current_pc_id = msg["tc_id"]
+
+                if msg.get("tc_id") and msg["tc_id"].startswith("TC_ID"):
+                    mode = "TEST_CASE"
+                    current_pc_id = None  # Reset PC_ID when new TC starts
+
+                # --- Multi-frame request ---
+                if data_bytes and data_bytes[0].upper() == "10":
+                    current_request = {
+                        "timestamp": msg["timestamp"],
+                        "can_id": msg["can_id"],
+                        "direction": msg["direction"],
+                        "data_bytes": msg["data_bytes"],
+                        "desc": msg.get("desc", ""),
+                        "tc_id": msg.get("tc_id", ""),
+                        "expected_resp": msg.get("expected_resp", ""),
+                        "pc_id": current_pc_id,
+                        "status": "Pending",
+                        "response": None,
+                        "failure_reason": ""
+                    }
+                    awaiting_multiframe = True
+                    skip_next_fc = True
+
+                else:
+                    # --- Single frame request ---
+                    current_request = {
+                        "timestamp": msg["timestamp"],
+                        "can_id": msg["can_id"],
+                        "direction": msg["direction"],
+                        "data_bytes": msg["data_bytes"],
+                        "desc": msg.get("desc", ""),
+                        "tc_id": msg.get("tc_id", ""),
+                        "expected_resp": msg.get("expected_resp", ""),
+                        "pc_id": current_pc_id,
+                        "status": "Pending",
+                        "response": None,
+                        "failure_reason": ""
+                    }
+                    awaiting_multiframe = False
+
+            # --- Process Rx ---
+            elif msg["direction"] == "Rx" and can_id in allowed_rx_ids:
+                data_bytes = msg["data_bytes"]
+
+                # --- Skip FlowControl ---
+                if skip_next_fc and data_bytes and data_bytes[0].upper() == "30":
+                    skip_next_fc = False
+                    continue
+
+                # --- Multi-frame Rx (first frame) ---
+                if data_bytes and data_bytes[0].upper() == "10":
+                    rx_multi_response_first = msg
+                    rx_multi_response_pending = True
+                    continue
+
+                # --- Multi-frame Rx (consecutive frame) ---
+                if rx_multi_response_pending and data_bytes and data_bytes[0].upper() == "21":
+                    combined_bytes = rx_multi_response_first["data_bytes"][:7] + data_bytes[1:]
+                    rx_msg = {
+                        "timestamp": rx_multi_response_first["timestamp"],
+                        "can_id": rx_multi_response_first["can_id"],
+                        "direction": rx_multi_response_first["direction"],
+                        "data_bytes": combined_bytes
+                    }
+
+                    if current_request:
+                        status, reason = get_status(combined_bytes, current_request.get("expected_resp", ""))
+                        current_request["response"] = rx_msg
+                        current_request["status"] = status
+                        current_request["failure_reason"] = reason
+
+                        # Save only TEST_CASE
+                        if (
+                            current_request["tc_id"]
+                            and current_request["tc_id"].startswith("TC_ID")
+                            and mode == "TEST_CASE"
+                        ):
+                            messages_by_tc[current_request["tc_id"]].append(current_request)
+
+                        req_ts = current_request["timestamp"]
+                        res_ts = rx_msg["timestamp"]
+                        if start_ts is None or req_ts < start_ts:
+                            start_ts = req_ts
+                        if end_ts is None or res_ts > end_ts:
+                            end_ts = res_ts
+
+                        current_request = None
+
+                    rx_multi_response_pending = False
+                    rx_multi_response_first = None
+                    continue
+
+                # --- Single frame response ---
+                if current_request and not rx_multi_response_pending:
+                    status, reason = get_status(data_bytes, current_request.get("expected_resp", ""))
+                    current_request["response"] = msg
+                    current_request["status"] = status
+                    current_request["failure_reason"] = reason
+
+                    # Save only TEST_CASE
+                    if (
+                        current_request["tc_id"]
+                        and current_request["tc_id"].startswith("TC_ID")
+                        and mode == "TEST_CASE"
+                    ):
+                        messages_by_tc[current_request["tc_id"]].append(current_request)
+
+                    req_ts = current_request["timestamp"]
+                    res_ts = msg["timestamp"]
+                    if start_ts is None or req_ts < start_ts:
+                        start_ts = req_ts
+                    if end_ts is None or res_ts > end_ts:
+                        end_ts = res_ts
+
+                    current_request = None
+
+    return messages_by_tc, start_ts or 0, end_ts or 0
+
+
 ###2
 def parse_asc_file(asc_file_path, allowed_tx_ids, allowed_rx_ids):
     messages_by_tc = defaultdict(list)
