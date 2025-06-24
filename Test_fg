@@ -1,3 +1,125 @@
+def parse_asc_file(asc_file_path, allowed_tx_ids, allowed_rx_ids):
+    messages_by_tc = defaultdict(list)
+    current_request = None
+    start_ts = None
+    end_ts = None
+    awaiting_multiframe = False
+    skip_next_fc = False
+    rx_multi_response_pending = False
+    rx_multi_response_first = None
+
+    allowed_tx_ids = set(f"{id:X}" for id in allowed_tx_ids)
+    allowed_rx_ids = set(f"{id:X}" for id in allowed_rx_ids)
+
+    with open(asc_file_path, "r", encoding="utf-8", errors="ignore") as f:
+        for line in f:
+            line = line.strip()
+            if not line or not re.match(r"^\d+\.\d+", line):
+                continue
+
+            msg = parse_line(line)
+            if not msg:
+                continue
+
+            can_id = msg["can_id"].upper()
+
+            # Process Tx messages
+            if msg["direction"] == "Tx" and can_id in allowed_tx_ids:
+                data_bytes = msg["data_bytes"]
+
+                # Multi-frame request
+                if data_bytes and data_bytes[0].upper() == "10":
+                    current_request = msg
+                    awaiting_multiframe = True
+                    skip_next_fc = True
+                else:
+                    # Single frame
+                    if msg.get("tc_id") and msg.get("desc"):
+                        current_request = msg
+                        awaiting_multiframe = False
+
+            # Process Rx messages
+            elif msg["direction"] == "Rx" and can_id in allowed_rx_ids:
+                data_bytes = msg["data_bytes"]
+
+                # Flow Control frame
+                if skip_next_fc and data_bytes and data_bytes[0].upper() == "30":
+                    skip_next_fc = False
+                    continue
+
+                # Multi-frame response - first frame
+                if data_bytes and data_bytes[0].upper() == "10":
+                    rx_multi_response_first = msg
+                    rx_multi_response_pending = True
+                    continue
+
+                # Multi-frame response - consecutive frame
+                if rx_multi_response_pending and data_bytes and data_bytes[0].upper() == "21":
+                    combined_bytes = rx_multi_response_first["data_bytes"][:7] + data_bytes[1:]
+
+                    # Skip ResponsePending
+                    if combined_bytes[0].upper() == "7F" and combined_bytes[2].upper() == "78":
+                        logging.debug("Multi-frame ResponsePending (0x78), waiting...")
+                        continue
+
+                    rx_msg = {
+                        "timestamp": rx_multi_response_first["timestamp"],
+                        "can_id": rx_multi_response_first["can_id"],
+                        "direction": rx_multi_response_first["direction"],
+                        "data_bytes": combined_bytes
+                    }
+
+                    if current_request:
+                        status, reason = get_status(combined_bytes, current_request.get("expected_resp", ""))
+                        current_request["response"] = rx_msg
+                        current_request["status"] = status
+                        current_request["failure_reason"] = reason
+
+                        if current_request["tc_id"] and not current_request["tc_id"].startswith("ECU_INFO"):
+                            messages_by_tc[current_request["tc_id"]].append(current_request)
+
+                        req_ts = current_request["timestamp"]
+                        res_ts = rx_msg["timestamp"]
+                        if start_ts is None or req_ts < start_ts:
+                            start_ts = req_ts
+                        if end_ts is None or res_ts > end_ts:
+                            end_ts = res_ts
+
+                        current_request = None
+
+                    rx_multi_response_pending = False
+                    rx_multi_response_first = None
+                    continue
+
+                # Single frame response
+                if current_request and not rx_multi_response_pending:
+                    # Skip ResponsePending
+                    if data_bytes[0].upper() == "7F" and data_bytes[2].upper() == "78":
+                        logging.debug("Single frame ResponsePending (0x78), waiting...")
+                        continue
+
+                    status, reason = get_status(data_bytes, current_request.get("expected_resp", ""))
+                    current_request["response"] = msg
+                    current_request["status"] = status
+                    current_request["failure_reason"] = reason
+
+                    if current_request["tc_id"] and not current_request["tc_id"].startswith("ECU_INFO"):
+                        messages_by_tc[current_request["tc_id"]].append(current_request)
+
+                    req_ts = current_request["timestamp"]
+                    res_ts = msg["timestamp"]
+                    if start_ts is None or req_ts < start_ts:
+                        start_ts = req_ts
+                    if end_ts is None or res_ts > end_ts:
+                        end_ts = res_ts
+
+                    current_request = None
+
+    return messages_by_tc, start_ts or 0, end_ts or 0
+
+
+###ECU info
+
 def get_ecu_information(self, oled=None, logging_enable=True):
     testcase_file_path = self.get_testcase_file_path()
     if logging_enable:
