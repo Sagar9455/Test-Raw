@@ -1,0 +1,58 @@
+<html><head><title>UDS Diagnostic Report</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body { font-family: Arial; margin: 20px; }
+        .pass { color: green; font-weight: bold; }
+        .fail { color: red; font-weight: bold; }
+        summary { font-weight: bold; cursor: pointer; }
+        table { border-collapse: collapse; width: 100%; margin-top: 10px; }
+        th, td { border: 1px solid #ccc; padding: 8px; }
+        th { background: #f0f0f0; }
+        #chart-container { width: 300px; margin: 20px auto; }
+    </style></head><body>
+    
+    
+    <div style="text-align: center;">
+        <h1>UDS Diagnostic Report</h1>
+    </div>
+    
+    
+    <div style="display: flex; justify-content: space-between; margin-bottom: 20px; align-items: flex-start;">
+
+       
+        <div style="flex: 1; text-align: left;">
+            <p><strong>Generated:</strong> 2025-06-24 15:56:36</p>
+            <p><strong>CAN Log File:</strong> CANLog_Testcase_20250624_155630.asc</p>
+            <p><strong>Total Test Cases:</strong> 0</p>
+            <p class="pass"><strong>Passed:</strong> 0</p>
+            <p class="fail"><strong>Failed:</strong> 0</p>
+            <p><strong>Test Duration:</strong> 0.000 seconds</p>
+        </div>
+
+        
+        <div style="flex: 0 0 auto; text-align: left; margin-left: 40px;">
+            <p><strong>ECU Information:</strong></p>
+    <p><strong>Target ECU:</strong> MKBD</p></div></div>
+    <div id="chart-container"><canvas id="passFailChart"></canvas></div>
+    <script>
+        const ctx = document.getElementById('passFailChart').getContext('2d');
+        new Chart(ctx, {
+            type: 'pie',
+            data: {
+                labels: ['Passed', 'Failed'],
+                datasets: [{
+                    data: [0, 0],
+                    backgroundColor: ['#4CAF50', '#F44336']
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: { position: 'bottom' },
+                    title: { display: true, text: 'Test Case Results' }
+                }
+            }
+        });
+    </script>
+    <hr><br>
+    </body></html>
