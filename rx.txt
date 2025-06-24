@@ -1,27 +1,107 @@
 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9999999
-18:58:50,540 [DEBUG] sending: Timestamp:        0.000000        ID: 0716    S Rx                DL:  8    02 10 03 00 00 00 00 00
-2025-06-23 18:58:50,559 [DEBUG] Rx: <71E> (08) [p]	 065003003201f4aa
-2025-06-23 18:58:50,560 [DEBUG] Received 6 bytes : [5003003201f4]
-2025-06-23 18:58:50,562 [DEBUG] Received response from server
-2025-06-23 18:58:50,563 [INFO] Received positive response for service DiagnosticSessionControl (0x10) from server.
-2025-06-23 18:58:50,764 [INFO] [ECU Info] Processing ECU_INFO_1
-2025-06-23 18:58:50,766 [DEBUG] [ECU Info] Step=('ECU_INFO_1', 'S/W Version', '0x22', '0xF1DD', '0x62', '', 'physical')
-2025-06-23 18:58:50,881 [ERROR] [ECU Info] S/W Version - Exception: cannot access local variable 'response' where it is not associated with a value
-2025-06-23 18:58:50,984 [INFO] [ECU Info] Processing ECU_INFO_2
-2025-06-23 18:58:50,986 [DEBUG] [ECU Info] Step=('ECU_INFO_2', 'B-CAN Version', '0x22', '0xF100', '0x62', '', 'physical')
-2025-06-23 18:58:51,102 [ERROR] [ECU Info] B-CAN Version - Exception: cannot access local variable 'response' where it is not associated with a value
-2025-06-23 18:58:51,204 [INFO] [ECU Info] Processing ECU_INFO_3
-2025-06-23 18:58:51,205 [DEBUG] [ECU Info] Step=('ECU_INFO_3', 'Manufacturing Date', '0x22', '0xF18B', '0x62', '', 'physical')
-2025-06-23 18:58:51,326 [ERROR] [ECU Info] Manufacturing Date - Exception: cannot access local variable 'response' where it is not associated with a value
-2025-06-23 18:58:51,427 [INFO] [ECU Info] Processing ECU_INFO_4
-2025-06-23 18:58:51,431 [DEBUG] [ECU Info] Step=('ECU_INFO_4', 'ECU_Serial Number', '0x22', '0xF18C', '0x62', '', 'physical')
-2025-06-23 18:58:51,558 [ERROR] [ECU Info] ECU_Serial Number - Exception: cannot access local variable 'response' where it is not associated with a value
-2025-06-23 18:58:51,659 [INFO] [ECU Info] Processing ECU_INFO_5
-2025-06-23 18:58:51,664 [DEBUG] [ECU Info] Step=('ECU_INFO_5', 'H/W Version', '0x22', '0xF193', '0x62', '', 'physical')
-2025-06-23 18:58:51,788 [ERROR] [ECU Info] H/W Version - Exception: cannot access local variable 'response' where it is not associated with a value
-2025-06-23 18:58:51,890 [DEBUG] Stopping CanStack
-2025-06-23 18:58:51,897 [DEBUG] Main thread is exiting
-2025-06-23 18:58:51,935 [DEBUG] CanStack Stopped
-2025-06-23 18:58:51,937 [INFO] Connection closed
-2025-06-23 18:58:52,563 [ERROR] [CANLogger] Error during stop: I/O operation on closed file.
-
+ 
+    def get_ecu_information(self, oled=None ,logging_enable=True):
+     
+        testcase_file_path = self.get_testcase_file_path()
+        if logging_enable:
+                self.start_logging(log_name_suffix="ECU_Info")
+                
+        ecu_info = {}
+        session_default = int(self.uds_config["default_session"], 16)
+        session_extended = int(self.uds_config["extended_session"], 16)
+        
+        
+        grouped_cases = load_testcases(testcase_file_path)
+        time.sleep(0.5)
+        
+        def normalize_hex_string(val):
+            return val.lower().replace("0x", "").strip()
+        
+        with Client(self.active_conn["conn"], request_timeout=2, config=self.client_config) as client:
+            try:
+                client.change_session(session_default)
+                time.sleep(0.2)
+                client.change_session(session_extended)
+                time.sleep(0.2)
+                
+            except Exception as e:
+                if oled:
+                    oled.display_centered_text(f"Session Error:\n{str(e)}")
+                logging.error(f"Session change failed: {e}")
+                
+                return
+        
+            
+            for tc_id, steps in grouped_cases.items():
+                if not tc_id.startswith("ECU_INFO"):
+                    continue
+        
+                logging.info(f"[ECU Info] Processing {tc_id}")
+        
+                for step in steps:
+                    logging.debug(f"[ECU Info] Step={step}")
+        
+                    try:
+                        tc_id, step_desc, service, subfunc, expected, *rest = step
+        
+                        service_clean = normalize_hex_string(service)
+                        subfunc_clean = normalize_hex_string(subfunc)
+        
+                        if service_clean != "22":
+                            continue
+        
+                        try:
+                            did = int(subfunc_clean, 16)
+                        except ValueError as ve:
+                            logging.error(f"[ECU Info] Invalid subfunc '{subfunc}' in {tc_id} step '{step_desc}': {ve}")
+                            continue
+        
+                          # RAW request:
+                            did_hi = (did >> 8) & 0xFF
+                            did_lo = did & 0xFF
+                           
+                            raw_request = bytes([0x22, did_hi, did_lo])
+                            logging.info(f"[ECU Info] Sending raw request: {raw_request.hex()}")
+                           
+                            client.conn.send(raw_request)
+                            response = client.conn.wait_frame(timeout=2)
+                           
+                            raw_payload = list(response)
+                            logging.debug(f"[ECU Info] Received raw payload: {raw_payload}")
+                           
+                            if raw_payload[0] != 0x62:
+                                raise Exception(f"Unexpected response: {raw_payload}")
+                           
+                            if raw_payload[1] != did_hi or raw_payload[2] != did_lo:
+                                raise Exception(f"DID mismatch: {raw_payload}")
+                           
+                            raw_data = raw_payload[3:]
+                            hex_str = ' '.join(f"{b:02X}" for b in raw_data)
+                           
+                            ecu_info[step_desc] = hex_str
+        
+                            if oled:
+                                oled.display_centered_text(f"{step_desc}\n{hex_str}")
+                                time.sleep(2)
+        
+                            logging.info(f"[ECU Info] {step_desc} ({subfunc}) = {hex_str}")
+        
+                        else:
+                            nrc = hex(response.code)
+                            ecu_info[step_desc] = f"NRC: {nrc}"
+        
+                            if oled:
+                                oled.display_centered_text(f"{step_desc}\nNRC: {nrc}")
+        
+                            logging.warning(f"[ECU Info] {step_desc} - NRC: {nrc}")
+        
+                    except Exception as e:
+                        error_msg = str(e)[:40]
+                        ecu_info[step_desc] = f"Error: {error_msg}"
+        
+                        if oled:
+                            oled.display_centered_text(f"{step_desc}\nError: {error_msg}")
+        
+                        logging.error(f"[ECU Info] {step_desc} - Exception: {e}")
+        
+                    time.sleep(0.1)

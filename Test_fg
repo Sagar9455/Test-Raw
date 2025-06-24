@@ -1,5 +1,22 @@
- 
-    def get_ecu_information(self, oled=None ,logging_enable=True):
+2025-06-24 13:49:58,143 [DEBUG] Received response from server
+2025-06-24 13:49:58,143 [INFO] Received positive response for service DiagnosticSessionControl (0x10) from server.
+2025-06-24 13:49:58,344 [INFO] [ECU Info] Processing ECU_INFO_1
+2025-06-24 13:49:58,345 [DEBUG] [ECU Info] Step=('ECU_INFO_1', 'S/W Version', '0x22', '0xF1DD', '0x62', '', 'physical')
+2025-06-24 13:49:58,447 [INFO] [ECU Info] Processing ECU_INFO_2
+2025-06-24 13:49:58,450 [DEBUG] [ECU Info] Step=('ECU_INFO_2', 'B-CAN Version', '0x22', '0xF100', '0x62', '', 'physical')
+2025-06-24 13:49:58,553 [INFO] [ECU Info] Processing ECU_INFO_3
+2025-06-24 13:49:58,554 [DEBUG] [ECU Info] Step=('ECU_INFO_3', 'Manufacturing Date', '0x22', '0xF18B', '0x62', '', 'physical')
+2025-06-24 13:49:58,655 [INFO] [ECU Info] Processing ECU_INFO_4
+2025-06-24 13:49:58,656 [DEBUG] [ECU Info] Step=('ECU_INFO_4', 'ECU_Serial Number', '0x22', '0xF18C', '0x62', '', 'physical')
+2025-06-24 13:49:58,757 [INFO] [ECU Info] Processing ECU_INFO_5
+2025-06-24 13:49:58,761 [DEBUG] [ECU Info] Step=('ECU_INFO_5', 'H/W Version', '0x22', '0xF193', '0x62', '', 'physical')
+2025-06-24 13:49:58,864 [DEBUG] Stopping CanStack
+2025-06-24 13:49:58,866 [DEBUG] Main thread is exiting
+2025-06-24 13:49:58,897 [DEBUG] CanStack Stopped
+2025-06-24 13:49:58,898 [INFO] Connection closed
+2025-06-24 13:49:59,140 [ERROR] [CANLogger] Error during stop: I/O operation on closed file.
+###
+def get_ecu_information(self, oled=None ,logging_enable=True):
      
         testcase_file_path = self.get_testcase_file_path()
         if logging_enable:
@@ -46,9 +63,7 @@
                         service_clean = normalize_hex_string(service)
                         subfunc_clean = normalize_hex_string(subfunc)
         
-                        if service_clean != "22":
-                            continue
-        
+                        
                         try:
                             did = int(subfunc_clean, 16)
                         except ValueError as ve:
@@ -85,14 +100,7 @@
         
                             logging.info(f"[ECU Info] {step_desc} ({subfunc}) = {hex_str}")
         
-                        else:
-                            nrc = hex(response.code)
-                            ecu_info[step_desc] = f"NRC: {nrc}"
-        
-                            if oled:
-                                oled.display_centered_text(f"{step_desc}\nNRC: {nrc}")
-        
-                            logging.warning(f"[ECU Info] {step_desc} - NRC: {nrc}")
+                        
         
                     except Exception as e:
                         error_msg = str(e)[:40]
@@ -104,3 +112,21 @@
                         logging.error(f"[ECU Info] {step_desc} - Exception: {e}")
         
                     time.sleep(0.1)
+        
+        
+        
+        if logging_enable:
+                self.stop_logging()
+        return ecu_info 
+        
+     ##
+     #TC_ID/PC_ID , Testcase Description,Service ID,Sub service ID,Expected response ,Write Data,Addressing
+ECU_INFO_1 , S/W Version  , 0x22 , 0xF1DD , 0x62 ,  ,physical
+ECU_INFO_2 , B-CAN Version , 0x22 , 0xF100 , 0x62 , , physical
+ECU_INFO_3 , Manufacturing Date, 0x22 , 0xF18B , 0x62 ,  ,physical
+ECU_INFO_4 , ECU_Serial Number , 0x22 , 0xF18C , 0x62 ,  ,physical
+ECU_INFO_5 , H/W Version , 0x22 , 0xF193 , 0x62 ,  ,physical
+TC_ID-001 , Start default session,0x10,0x01,0x50 ,  ,physical
+TC_ID-003 , Start Extended session,0x10,0x03,0x50 ,  ,physical
+TC_ID-004 , Sub function not supported(10 FF),0x10,0xFF,0x7F 0x10 0x12 ,  ,physical
+TC_ID-007 , Hard reset,0x11,0x01,0x51 ,  ,physical   
