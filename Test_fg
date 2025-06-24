@@ -1,5 +1,4 @@
 def get_ecu_information(self, oled=None, logging_enable=True):
-
     testcase_file_path = self.get_testcase_file_path()
     if logging_enable:
         self.start_logging(log_name_suffix="ECU_Info")
@@ -44,20 +43,18 @@ def get_ecu_information(self, oled=None, logging_enable=True):
 
                     try:
                         service_int = int(service_clean, 16)
-                        subfunc_int = int(subfunc_clean, 16)
+                        did = int(subfunc_clean, 16)
                     except ValueError as ve:
-                        logging.error(f"[ECU Info] Invalid service or subfunc in {tc_id} step '{step_desc}': {ve}")
+                        logging.error(f"[ECU Info] Invalid service or subfunc '{subfunc}' in {tc_id} step '{step_desc}': {ve}")
                         continue
 
-                    # Build raw request based on service
-                    if service_int == 0x22:
-                        # ReadDataByIdentifier → 0x22 DID-HI DID-LO
-                        did_hi = (subfunc_int >> 8) & 0xFF
-                        did_lo = subfunc_int & 0xFF
-                        raw_request = bytes([service_int, did_hi, did_lo])
+                    # RAW request
+                    if service_int == 0x22:  # ReadDataByIdentifier
+                        did_hi = (did >> 8) & 0xFF
+                        did_lo = did & 0xFF
+                        raw_request = bytes([0x22, did_hi, did_lo])
                     else:
-                        # Other service → service subfunction
-                        raw_request = bytes([service_int, subfunc_int])
+                        raw_request = bytes([service_int, did])
 
                     logging.info(f"[ECU Info] Sending raw request: {raw_request.hex()}")
 
@@ -67,31 +64,38 @@ def get_ecu_information(self, oled=None, logging_enable=True):
                     raw_payload = list(response)
                     logging.debug(f"[ECU Info] Received raw payload: {raw_payload}")
 
-                    # Basic check for positive response
-                    if len(raw_payload) < 1:
-                        raise Exception(f"Empty response!")
-
-                    expected_positive_sid = service_int + 0x40
-                    if raw_payload[0] != expected_positive_sid:
-                        raise Exception(f"Unexpected response SID: got {raw_payload[0]:02X}, expected {expected_positive_sid:02X}")
-
-                    # For 0x22 check DID match:
+                    # Validate response
                     if service_int == 0x22:
+                        if raw_payload[0] != 0x62:
+                            raise Exception(f"Unexpected response: {raw_payload}")
                         if raw_payload[1] != did_hi or raw_payload[2] != did_lo:
-                            raise Exception(f"DID mismatch: expected {did_hi:02X} {did_lo:02X}, got {raw_payload[1]:02X} {raw_payload[2]:02X}")
+                            raise Exception(f"DID mismatch: {raw_payload}")
 
                         raw_data = raw_payload[3:]
                     else:
                         raw_data = raw_payload[1:]
 
+                    # Build HEX string
                     hex_str = ' '.join(f"{b:02X}" for b in raw_data)
-                    ecu_info[step_desc] = hex_str
+
+                    # Try ASCII conversion if printable
+                    try:
+                        ascii_str = bytes(raw_data).decode("ascii").strip()
+                        if all(32 <= ord(c) <= 126 for c in ascii_str):
+                            display_value = ascii_str
+                        else:
+                            display_value = hex_str
+                    except:
+                        display_value = hex_str
+
+                    # Store value
+                    ecu_info[step_desc] = display_value
 
                     if oled:
-                        oled.display_centered_text(f"{step_desc}\n{hex_str}")
+                        oled.display_centered_text(f"{step_desc}\n{display_value}")
                         time.sleep(2)
 
-                    logging.info(f"[ECU Info] {step_desc} ({subfunc}) = {hex_str}")
+                    logging.info(f"[ECU Info] {step_desc} ({subfunc}) = {display_value}")
 
                 except Exception as e:
                     error_msg = str(e)[:40]
@@ -106,5 +110,4 @@ def get_ecu_information(self, oled=None, logging_enable=True):
 
     if logging_enable:
         self.stop_logging()
-
     return ecu_info
