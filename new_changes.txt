@@ -1,3 +1,11 @@
+###security
+
+logging.info(f"[DEBUG] Test case: {tc_id}, Step: {step_desc}")
+logging.info(f"[DEBUG] CSV service={service}, subfunc={subfunc}")
+logging.info(f"[DEBUG] Parsed service_int={service_int}, subfunc_int={subfunc_int}")
+
+
+
 ####Testcase
 
 def run_testcase(self, oled):
