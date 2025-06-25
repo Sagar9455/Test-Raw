@@ -1,69 +1,7 @@
 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9999999
 
-2025-06-25 16:17:50,202 [INFO] Running Test Case: TC_ID-088
-2025-06-25 16:17:50,203 [DEBUG] Starting CanStack
-2025-06-25 16:17:50,204 [DEBUG] Main thread has started
-2025-06-25 16:17:50,205 [DEBUG] Relay thread has started
-2025-06-25 16:17:50,206 [INFO] Connection opened
-2025-06-25 16:17:50,207 [INFO] Switched to physical mode for TC: TC_ID-088 Step: PreCondition: PC_ID-08 to PreCondition: PC_ID-10 Testcase: Manufacturing_F1_8B_Write
-2025-06-25 16:17:50,208 [INFO] TC_ID-088 - PreCondition: PC_ID-08 to PreCondition: PC_ID-10 Testcase: Manufacturing_F1_8B_Write: SID=0x2E, Sub=0xF18B, Expected=[110]
-2025-06-25 16:17:50,208 [DEBUG] Sending 7 bytes : [2ef18b00000000]
-2025-06-25 16:17:50,209 [DEBUG] Enqueuing a SendRequest for 7 bytes and TAT=Physical
-2025-06-25 16:17:50,210 [DEBUG] Tx: <716> (08) [ ]	 072ef18b00000000
-2025-06-25 16:17:50,211 [DEBUG] We've been asked to write a message to the bus
-2025-06-25 16:17:50,211 [DEBUG] sending: Timestamp:        0.000000        ID: 0716    S Rx                DL:  8    07 2e f1 8b 00 00 00 00
-2025-06-25 16:17:50,254 [DEBUG] Rx: <71E> (08) [p]	 037f2e78aaaaaaaa
-2025-06-25 16:17:50,260 [DEBUG] Received 3 bytes : [7f2e78]
-2025-06-25 16:17:50,264 [DEBUG] TC_ID-088 PreCondition: PC_ID-08 to PreCondition: PC_ID-10 Testcase: Manufacturing_F1_8B_Write -> Received payload: [127, 46, 120]
-2025-06-25 16:17:50,267 [WARNING] TC_ID-088 PreCondition: PC_ID-08 to PreCondition: PC_ID-10 Testcase: Manufacturing_F1_8B_Write -> FAIL - NRC (WriteDataByIdentifier): [127, 46, 120]
-2025-06-25 16:17:50,275 [DEBUG] Rx: <71E> (08) [p]	 036ef18baaaaaaaa
-2025-06-25 16:17:50,277 [DEBUG] Stopping CanStack
-2025-06-25 16:17:50,285 [DEBUG] Main thread is exiting
-2025-06-25 16:17:50,321 [DEBUG] CanStack Stopped
-2025-06-25 16:17:50,323 [INFO] Connection closed
-2025-06-25 16:17:50,324 [ERROR] TC_ID-088 PreCondition: PC_ID-08 to PreCondition: PC_ID-10 Testcase: Manufacturing_F1_8B_Write -> EXCEPTION - NRC (WriteDataByIdentifier): [127, 46, 120]
-
-
-2025-06-25 16:18:32,842 [INFO] Running Test Case: TC_ID-131
-2025-06-25 16:18:32,843 [DEBUG] Starting CanStack
-2025-06-25 16:18:32,844 [DEBUG] Main thread has started
-2025-06-25 16:18:32,845 [DEBUG] Relay thread has started
-2025-06-25 16:18:32,846 [INFO] Connection opened
-2025-06-25 16:18:32,846 [INFO] Switched to physical mode for TC: TC_ID-131 Step: PreCondition: PC_ID-14 to PreCondition: PC_ID-16 Testcase:SystemNameOrEngineTypeDataIdentifier_Write(invalid security)
-2025-06-25 16:18:32,847 [INFO] TC_ID-131 - PreCondition: PC_ID-14 to PreCondition: PC_ID-16 Testcase:SystemNameOrEngineTypeDataIdentifier_Write(invalid security): SID=0x2E, Sub=0xF197, Expected=[51]
-2025-06-25 16:18:32,847 [DEBUG] Sending 7 bytes : [2ef1974d4b4244]
-2025-06-25 16:18:32,848 [DEBUG] Enqueuing a SendRequest for 7 bytes and TAT=Physical
-2025-06-25 16:18:32,850 [DEBUG] Tx: <716> (08) [ ]	 072ef1974d4b4244
-2025-06-25 16:18:32,850 [DEBUG] We've been asked to write a message to the bus
-2025-06-25 16:18:32,851 [DEBUG] sending: Timestamp:        0.000000        ID: 0716    S Rx                DL:  8    07 2e f1 97 4d 4b 42 44
-2025-06-25 16:18:32,864 [DEBUG] Rx: <71E> (08) [p]	 037f2e33aaaaaaaa
-2025-06-25 16:18:32,866 [DEBUG] Received 3 bytes : [7f2e33]
-2025-06-25 16:18:32,866 [DEBUG] TC_ID-131 PreCondition: PC_ID-14 to PreCondition: PC_ID-16 Testcase:SystemNameOrEngineTypeDataIdentifier_Write(invalid security) -> Received payload: [127, 46, 51]
-2025-06-25 16:18:32,867 [WARNING] TC_ID-131 PreCondition: PC_ID-14 to PreCondition: PC_ID-16 Testcase:SystemNameOrEngineTypeDataIdentifier_Write(invalid security) -> FAIL - NRC (WriteDataByIdentifier): [127, 46, 51]
-2025-06-25 16:18:32,868 [DEBUG] Stopping CanStack
-2025-06-25 16:18:32,868 [DEBUG] Main thread is exiting
-2025-06-25 16:18:32,916 [DEBUG] CanStack Stopped
-2025-06-25 16:18:32,919 [INFO] Connection closed
-2025-06-25 16:18:32,923 [ERROR] TC_ID-131 PreCondition: PC_ID-14 to PreCondition: PC_ID-16 Testcase:SystemNameOrEngineTypeDataIdentifier_Write(invalid security) -> EXCEPTION - NRC (WriteDataByIdentifier): [127, 46, 51]
-
-
-2025-06-25 16:18:35,035 [INFO] Running Test Case: TC_ID-139
-2025-06-25 16:18:35,036 [DEBUG] Starting CanStack
-2025-06-25 16:18:35,037 [DEBUG] Main thread has started
-2025-06-25 16:18:35,039 [DEBUG] Relay thread has started
-2025-06-25 16:18:35,040 [INFO] Connection opened
-2025-06-25 16:18:35,041 [INFO] Switched to physical mode for TC: TC_ID-139 Step: sub function not supported(with wrong sub function)
-2025-06-25 16:18:35,041 [INFO] TC_ID-139 - sub function not supported(with wrong sub function): SID=0x3E, Sub=0xFF, Expected=[127]
-$$$$$$$$$$$UDS Client Config:
-2025-06-25 16:18:35,042 [DEBUG] Sending 2 bytes : [3eff]
-2025-06-25 16:18:35,042 [DEBUG] Enqueuing a SendRequest for 2 bytes and TAT=Physical
-2025-06-25 16:18:35,043 [DEBUG] Tx: <716> (08) [ ]	 023eff0000000000
-2025-06-25 16:18:35,044 [DEBUG] We've been asked to write a message to the bus
-2025-06-25 16:18:35,044 [DEBUG] sending: Timestamp:        0.000000        ID: 0716    S Rx                DL:  8    02 3e ff 00 00 00 00 00
-2025-06-25 16:18:35,054 [DEBUG] Rx: <71E> (08) [p]	 037f3e12aaaaaaaa
-2025-06-25 16:18:35,055 [DEBUG] Received 3 bytes : [7f3e12]
-@@@@@@@@@@@ UDS Client Config:
-2025-06-25 16:18:35,056 [ERROR] TC_ID-139 sub function not supported(with wrong sub function) -> FAIL - No response received (timeout)
-2025-06-25 16:18:35,057 [DEBUG] Stopping CanStack
-2025-06-25 16:18:35,058 [DEBUG] Main thread is exiting
-2025-06-25 16:18:35,106 [DEBUG] CanStack Stopped
+elif service_int == 0x28:
+    subfunc_bytes = bytes.fromhex(subfunc.strip()) if subfunc.strip() else b''
+    raw_request = bytes([0x28]) + subfunc_bytes
+    client.conn.send(raw_request)
+    response = client.conn.wait_frame(timeout=2)
