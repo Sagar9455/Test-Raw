@@ -32,3 +32,57 @@ TC_ID-095 , PreCondition: PC_ID-08 to PreCondition: PC_ID-10 Testcase: SystemNam
 PC_ID-014 , Start Extended session,0x10,0x03,0x50, ,physical
 PC_ID-015 , RequestSeed_ASK_Request,0x27,0x11,0x67, ,physical
 PC_ID-016 , SendKey_ASK_Send,0x27,0x13,0x7F, ,physical
+
+
+2025-06-25 15:45:44,018 [INFO] Running Test Case: PC_ID-009
+2025-06-25 15:45:44,019 [DEBUG] Starting CanStack
+2025-06-25 15:45:44,022 [DEBUG] Main thread has started
+2025-06-25 15:45:44,023 [DEBUG] Relay thread has started
+2025-06-25 15:45:44,024 [INFO] Connection opened
+2025-06-25 15:45:44,025 [INFO] Switched to physical mode for TC: PC_ID-009 Step: RequestSeed_ASK_Request
+2025-06-25 15:45:44,026 [INFO] PC_ID-009 - RequestSeed_ASK_Request: SID=0x27, Sub=0x11, Expected=[103]
+2025-06-25 15:45:44,027 [INFO] SecurityAccess<0x27> - Requesting seed to unlock security access level 0x03
+2025-06-25 15:45:44,028 [DEBUG] Sending request to server
+2025-06-25 15:45:44,029 [DEBUG] Sending 2 bytes : [2703]
+2025-06-25 15:45:44,031 [DEBUG] Enqueuing a SendRequest for 2 bytes and TAT=Physical
+2025-06-25 15:45:44,032 [DEBUG] Waiting for server response
+2025-06-25 15:45:44,033 [DEBUG] Tx: <716> (08) [ ]	 0227030000000000
+2025-06-25 15:45:44,034 [DEBUG] We've been asked to write a message to the bus
+2025-06-25 15:45:44,035 [DEBUG] sending: Timestamp:        0.000000        ID: 0716    S Rx                DL:  8    02 27 03 00 00 00 00 00
+2025-06-25 15:45:44,045 [DEBUG] Rx: <71E> (08) [p]	 037f2712aaaaaaaa
+2025-06-25 15:45:44,047 [DEBUG] Received 3 bytes : [7f2712]
+2025-06-25 15:45:44,049 [DEBUG] Received response from server
+2025-06-25 15:45:44,051 [WARNING] SecurityAccess service execution returned a negative response SubFunctionNotSupported (0x12)
+2025-06-25 15:45:44,052 [WARNING] PC_ID-009 RequestSeed_ASK_Request -> FAIL - NRC (seed): 0x12
+2025-06-25 15:45:44,053 [DEBUG] Stopping CanStack
+2025-06-25 15:45:44,054 [DEBUG] Main thread is exiting
+2025-06-25 15:45:44,103 [DEBUG] CanStack Stopped
+2025-06-25 15:45:44,107 [INFO] Connection closed
+2025-06-25 15:45:44,110 [ERROR] PC_ID-009 RequestSeed_ASK_Request -> EXCEPTION - NRC (seed): 0x12
+
+
+2025-06-25 15:45:46,227 [INFO] Running Test Case: PC_ID-010
+2025-06-25 15:45:46,227 [DEBUG] Starting CanStack
+2025-06-25 15:45:46,229 [DEBUG] Main thread has started
+2025-06-25 15:45:46,230 [DEBUG] Relay thread has started
+2025-06-25 15:45:46,230 [INFO] Connection opened
+2025-06-25 15:45:46,231 [INFO] Switched to physical mode for TC: PC_ID-010 Step: SendKey_ASK_Send
+2025-06-25 15:45:46,231 [INFO] PC_ID-010 - SendKey_ASK_Send: SID=0x27, Sub=0x12, Expected=[103]
+2025-06-25 15:45:46,232 [INFO] SecurityAccess<0x27> - Requesting seed to unlock security access level 0x03
+2025-06-25 15:45:46,233 [DEBUG] Sending request to server
+2025-06-25 15:45:46,233 [DEBUG] Sending 2 bytes : [2703]
+2025-06-25 15:45:46,234 [DEBUG] Enqueuing a SendRequest for 2 bytes and TAT=Physical
+2025-06-25 15:45:46,234 [DEBUG] Waiting for server response
+2025-06-25 15:45:46,235 [DEBUG] Tx: <716> (08) [ ]	 0227030000000000
+2025-06-25 15:45:46,236 [DEBUG] We've been asked to write a message to the bus
+2025-06-25 15:45:46,236 [DEBUG] sending: Timestamp:        0.000000        ID: 0716    S Rx                DL:  8    02 27 03 00 00 00 00 00
+2025-06-25 15:45:46,244 [DEBUG] Rx: <71E> (08) [p]	 037f2712aaaaaaaa
+2025-06-25 15:45:46,245 [DEBUG] Received 3 bytes : [7f2712]
+2025-06-25 15:45:46,247 [DEBUG] Received response from server
+2025-06-25 15:45:46,248 [WARNING] SecurityAccess service execution returned a negative response SubFunctionNotSupported (0x12)
+2025-06-25 15:45:46,248 [WARNING] PC_ID-010 SendKey_ASK_Send -> FAIL - NRC (seed): 0x12
+2025-06-25 15:45:46,249 [DEBUG] Stopping CanStack
+2025-06-25 15:45:46,250 [DEBUG] Main thread is exiting
+2025-06-25 15:45:46,296 [DEBUG] CanStack Stopped
+2025-06-25 15:45:46,300 [INFO] Connection closed
+2025-06-25 15:45:46,303 [ERROR] PC_ID-010 SendKey_ASK_Send -> EXCEPTION - NRC (seed): 0x12
