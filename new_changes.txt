@@ -1,3 +1,88 @@
+####Testcase
+
+def run_testcase(self, oled):
+    if not self.check_memory(oled):
+        return
+
+    testcase_file_path = self.get_testcase_file_path()
+    self.start_logging(log_name_suffix="Testcase")
+
+    # Call ECU Info once (without OLED and logging)
+    ecu_info_data = self.get_ecu_information(oled=None, logging_enable=False)
+
+    # Load all test cases
+    grouped_cases = load_testcases(testcase_file_path)
+    self.context = {}
+
+    for tc_id, steps in grouped_cases.items():
+        # ✅ Skip all ECU_INFO-related test cases (e.g., ECU_INFO_1, ECU_INFO_2, ...)
+        if tc_id.strip().upper().startswith("ECU_INFO"):
+            logging.info(f"Skipping ECU Info Test Case: {tc_id}")
+            continue
+
+        print("\n")
+        logging.info(f"Running Test Case: {tc_id}")
+
+        for step in steps:
+            tc_id, step_desc, service, subfunc, expected, write_data, addressing = step
+
+            # ✅ Optional: skip any step that might be named like an ECU Info step
+            if step_desc.strip().upper() == "ECU INFO":
+                logging.info(f"Skipping ECU Info Step: {tc_id} - {step_desc}")
+                continue
+
+            try:
+                self.switch_mode(addressing)
+
+                with Client(self.active_conn["conn"], request_timeout=2, config=self.active_conn["client_config"]) as client:
+                    logging.info(f"Switched to {addressing} mode for TC: {tc_id} Step: {step_desc}")
+
+                    service_int = int(service, 16)
+                    subfunc_int = int(subfunc, 16)
+                    expected_bytes = [int(b, 16) for b in expected.strip().split()] if expected.strip() else []
+                    data_to_write = [int(b, 16) for b in write_data.strip().split()] if write_data.strip() else []
+
+                    logging.info(f"{tc_id} - {step_desc}: SID={service}, Sub={subfunc}, Expected={expected_bytes}")
+
+                    response = None
+
+                    # UDS request sending logic
+                    if service_int == 0x10:
+                        raw_request = bytes([0x10, subfunc_int])
+                        client.conn.send(raw_request)
+                        response = client.conn.wait_frame(timeout=2)
+
+                    elif service_int == 0x11:
+                        raw_request = bytes([0x11, subfunc_int])
+                        client.conn.send(raw_request)
+                        response = client.conn.wait_frame(timeout=2)
+
+                    elif service_int == 0x28:
+                        raw_request = bytes([0x28, subfunc_int])
+                        client.conn.send(raw_request)
+                        response = client.conn.wait_frame(timeout=2)
+
+                    # Add more service types if needed...
+
+                    else:
+                        logging.warning(f"Unsupported service: {service_int:02X}")
+                        continue
+
+                    response_bytes = list(response)
+                    logging.info(f"Response: {response_bytes}")
+
+                    # Add validation logic if needed (compare with expected_bytes)
+
+            except Exception as e:
+                logging.error(f"Test Case Failed: {tc_id} - {step_desc} - Error: {e}")
+                if oled:
+                    oled.display_centered_text(f"{step_desc}\nFail")
+                    time.sleep(2)
+
+
+
+
+
 1#Cano_log
 import os
 import can
