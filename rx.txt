@@ -1,107 +1,34 @@
 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9999999
  
-    def get_ecu_information(self, oled=None ,logging_enable=True):
-     
-        testcase_file_path = self.get_testcase_file_path()
-        if logging_enable:
-                self.start_logging(log_name_suffix="ECU_Info")
-                
-        ecu_info = {}
-        session_default = int(self.uds_config["default_session"], 16)
-        session_extended = int(self.uds_config["extended_session"], 16)
-        
-        
-        grouped_cases = load_testcases(testcase_file_path)
-        time.sleep(0.5)
-        
-        def normalize_hex_string(val):
-            return val.lower().replace("0x", "").strip()
-        
-        with Client(self.active_conn["conn"], request_timeout=2, config=self.client_config) as client:
-            try:
-                client.change_session(session_default)
-                time.sleep(0.2)
-                client.change_session(session_extended)
-                time.sleep(0.2)
-                
-            except Exception as e:
-                if oled:
-                    oled.display_centered_text(f"Session Error:\n{str(e)}")
-                logging.error(f"Session change failed: {e}")
-                
-                return
-        
-            
-            for tc_id, steps in grouped_cases.items():
-                if not tc_id.startswith("ECU_INFO"):
-                    continue
-        
-                logging.info(f"[ECU Info] Processing {tc_id}")
-        
-                for step in steps:
-                    logging.debug(f"[ECU Info] Step={step}")
-        
-                    try:
-                        tc_id, step_desc, service, subfunc, expected, *rest = step
-        
-                        service_clean = normalize_hex_string(service)
-                        subfunc_clean = normalize_hex_string(subfunc)
-        
-                        if service_clean != "22":
-                            continue
-        
-                        try:
-                            did = int(subfunc_clean, 16)
-                        except ValueError as ve:
-                            logging.error(f"[ECU Info] Invalid subfunc '{subfunc}' in {tc_id} step '{step_desc}': {ve}")
-                            continue
-        
-                          # RAW request:
-                            did_hi = (did >> 8) & 0xFF
-                            did_lo = did & 0xFF
-                           
-                            raw_request = bytes([0x22, did_hi, did_lo])
-                            logging.info(f"[ECU Info] Sending raw request: {raw_request.hex()}")
-                           
-                            client.conn.send(raw_request)
-                            response = client.conn.wait_frame(timeout=2)
-                           
-                            raw_payload = list(response)
-                            logging.debug(f"[ECU Info] Received raw payload: {raw_payload}")
-                           
-                            if raw_payload[0] != 0x62:
-                                raise Exception(f"Unexpected response: {raw_payload}")
-                           
-                            if raw_payload[1] != did_hi or raw_payload[2] != did_lo:
-                                raise Exception(f"DID mismatch: {raw_payload}")
-                           
-                            raw_data = raw_payload[3:]
-                            hex_str = ' '.join(f"{b:02X}" for b in raw_data)
-                           
-                            ecu_info[step_desc] = hex_str
-        
-                            if oled:
-                                oled.display_centered_text(f"{step_desc}\n{hex_str}")
-                                time.sleep(2)
-        
-                            logging.info(f"[ECU Info] {step_desc} ({subfunc}) = {hex_str}")
-        
-                        else:
-                            nrc = hex(response.code)
-                            ecu_info[step_desc] = f"NRC: {nrc}"
-        
-                            if oled:
-                                oled.display_centered_text(f"{step_desc}\nNRC: {nrc}")
-        
-                            logging.warning(f"[ECU Info] {step_desc} - NRC: {nrc}")
-        
-                    except Exception as e:
-                        error_msg = str(e)[:40]
-                        ecu_info[step_desc] = f"Error: {error_msg}"
-        
-                        if oled:
-                            oled.display_centered_text(f"{step_desc}\nError: {error_msg}")
-        
-                        logging.error(f"[ECU Info] {step_desc} - Exception: {e}")
-        
-                    time.sleep(0.1)
+
+2025-06-25 15:39:47,905 [INFO] Running Test Case: PC_ID-015
+2025-06-25 15:39:47,906 [DEBUG] Starting CanStack
+2025-06-25 15:39:47,908 [DEBUG] Main thread has started
+2025-06-25 15:39:47,909 [DEBUG] Relay thread has started
+2025-06-25 15:39:47,912 [INFO] Connection opened
+2025-06-25 15:39:47,912 [INFO] Switched to physical mode for TC: PC_ID-015 Step: RequestSeed_ASK_Request
+2025-06-25 15:39:47,913 [INFO] PC_ID-015 - RequestSeed_ASK_Request: SID=0x27, Sub=0x11, Expected=[103]
+2025-06-25 15:39:47,914 [INFO] SecurityAccess<0x27> - Requesting seed to unlock security access level 0x03
+2025-06-25 15:39:47,915 [DEBUG] Sending request to server
+2025-06-25 15:39:47,917 [DEBUG] Sending 2 bytes : [2703]
+2025-06-25 15:39:47,919 [DEBUG] Enqueuing a SendRequest for 2 bytes and TAT=Physical
+2025-06-25 15:39:47,920 [DEBUG] Waiting for server response
+2025-06-25 15:39:47,921 [DEBUG] Tx: <716> (08) [ ]	 0227030000000000
+2025-06-25 15:39:47,923 [DEBUG] We've been asked to write a message to the bus
+2025-06-25 15:39:47,923 [DEBUG] sending: Timestamp:        0.000000        ID: 0716    S Rx                DL:  8    02 27 03 00 00 00 00 00
+2025-06-25 15:39:47,932 [DEBUG] Rx: <71E> (08) [p]	 037f2712aaaaaaaa
+2025-06-25 15:39:47,933 [DEBUG] Received 3 bytes : [7f2712]
+2025-06-25 15:39:47,936 [DEBUG] Received response from server
+2025-06-25 15:39:47,938 [WARNING] SecurityAccess service execution returned a negative response SubFunctionNotSupported (0x12)
+2025-06-25 15:39:47,940 [WARNING] PC_ID-015 RequestSeed_ASK_Request -> FAIL - NRC (seed): 0x12
+2025-06-25 15:39:47,941 [DEBUG] Stopping CanStack
+2025-06-25 15:39:47,943 [DEBUG] Main thread is exiting
+2025-06-25 15:39:47,984 [DEBUG] CanStack Stopped
+2025-06-25 15:39:47,988 [INFO] Connection closed
+2025-06-25 15:39:47,992 [ERROR] PC_ID-015 RequestSeed_ASK_Request -> EXCEPTION - NRC (seed): 0x12
+
+TC_ID-094 , PreCondition: PC_ID-08 to PreCondition: PC_ID-10 Testcase: SystemSupplierECUSoftwareVersionNumbe_DataIdentifier_F1_95_Write,0x2E,0xF195,0x6E,30 31 2E 30 30 ,physical
+TC_ID-095 , PreCondition: PC_ID-08 to PreCondition: PC_ID-10 Testcase: SystemNameOrEngineTypeDataIdentifier_Write,0x2E,0xF197,0x6E,4D 4B 42 44 ,physical
+PC_ID-014 , Start Extended session,0x10,0x03,0x50, ,physical
+PC_ID-015 , RequestSeed_ASK_Request,0x27,0x11,0x67, ,physical
+PC_ID-016 , SendKey_ASK_Send,0x27,0x13,0x7F, ,physical
