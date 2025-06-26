@@ -1,16 +1,160 @@
-###3
+import os
+import re
+import datetime
+from collections import defaultdict
+from html import escape
+
+def load_description_map(txt_file_path):
+    desc_map = {}
+    with open(txt_file_path, "r", encoding="utf-8") as f:
+        for line in f:
+            line = line.strip()
+            if not line or line.lower().startswith("#"):
+                continue
+            parts = line.split(",")
+            if len(parts) < 5:
+                continue
+            tc_id = parts[0].strip()
+            description = parts[1].strip()
+            sid = parts[2].strip().replace("0x", "").upper()
+            sub = parts[3].strip().replace("0x", "").upper()
+            positive_response = parts[4].strip().replace("0x", "").upper()
+            key = (sid, sub)
+            value = (description, tc_id, positive_response)
+            if key not in desc_map:
+                desc_map[key] = []
+            desc_map[key].append(value)
+    return desc_map
+
+def parse_data_bytes(line):
+    match = re.search(r'd\s+\d+\s+((?:[0-9A-Fa-f]{2}\s+)+)', line)
+    if match:
+        return match.group(1).strip().split()
+    return []
+
+def get_description(data_bytes):
+    if not data_bytes or len(data_bytes) < 2:
+        return "", "", ""
+    sid_index = 2 if data_bytes[0].startswith("1") else 1
+    if len(data_bytes) <= sid_index:
+        return "", "", ""
+    sid = data_bytes[sid_index].upper()
+    for length in (3, 2, 1):
+        if sid_index + length < len(data_bytes):
+            sub = ''.join(data_bytes[sid_index + 1: sid_index + 1 + length]).upper()
+            key = (sid, sub)
+            if key in DESCRIPTION_MAP:
+                used = getattr(get_description, "used_tc_ids", set())
+                for desc, tc_id, expected_resp in DESCRIPTION_MAP[key]:
+                    if tc_id not in used:
+                        used.add(tc_id)
+                        setattr(get_description, "used_tc_ids", used)
+                        return desc, tc_id, expected_resp
+                return DESCRIPTION_MAP[key][0]
+    return "", "", ""
+
+def get_failure_reason(nrc):
+    reasons = {
+        "10" : "generalReject",
+        "11" : "serviceNotSupported",
+        "12" : "subFunctionNotSupported",
+        "13" : "incorrectMessageLengthOrInvalidFormat",
+        "14" : "responseTooLong",
+        "21" : "busyRepeatReques",
+        "22" : "conditionsNotCorrect",
+        "23" : "ISOSAEReserved",
+        "24" : "requestSequenceError",
+        "31" : "requestOutOfRange",
+        "32" : "ISOSAEReserved",
+        "33" : "securityAccessDenied",
+        "34" : "ISOSAEReserved",
+        "35" : "invalidKey",
+        "36" : "exceedNumberOfAttempts",
+        "37" : "requiredTimeDelayNotExpired",
+        "70" : "uploadDownloadNotAccepted",
+        "71" : "transferDataSuspended",
+        "72" : "generalProgrammingFailure",
+        "73" : "wrongBlockSequenceCounter",
+        "78" : "requestCorrectlyReceived-ResponsePending",
+        "7E" : "subFunctionNotSupportedInActiveSession",
+        "7F" : "serviceNotSupportedInActiveSession",
+        "80" : "ISOSAEReserved",
+        "81" : "rpmTooHigh",
+        "82" : "rpmTooLow",
+        "83" : "engineIsRunning",
+        "84" : "engineIsNotRunning",
+        "85" : "engineRunTimeTooLow",
+        "86" : "temperatureTooHigh",
+        "87" : "temperatureTooLow",
+        "88" : "vehicleSpeedTooHigh",
+        "89" : "vehicleSpeedTooLow",
+        "8A" : "throttle/PedalTooHigh",
+        "8B" : "throttle/PedalTooLow",
+        "8C" : "transmissionRangeNotInNeutral",
+        "8D" : "transmissionRangeNotInGear",
+        "8E" : "ISOSAEReserved",
+        "8F" : "brakeSwitch(es)NotClosed (Brake Pedal not pressed or not applied)",
+        "90" : "shifterLeverNotInPark",
+        "91" : "torqueConverterClutchLocked",
+        "92" : "voltageTooHigh",
+        "93" : "voltageTooLow",
+        "FF" : "ISOSAEReserved",
+    }
+    return reasons.get(nrc.upper(), f"Unknown NRC: {nrc}")
+
+def get_status(data_bytes, expected_resp):
+    if not data_bytes or len(data_bytes) < 3:
+        return "Fail", "Incomplete response"
+
+    if data_bytes[0].upper() == "10":
+        actual_sid = data_bytes[2].upper()
+    else:
+        actual_sid = data_bytes[1].upper()
+
+    if actual_sid == "7F":
+        if len(data_bytes) >= 4 and data_bytes[3].upper() == "78":
+            return "Pending", ""
+        nrc = data_bytes[3].upper()
+        if nrc == expected_resp:
+            return "Pass", ""
+        else:
+            return "Fail", get_failure_reason(nrc)
+
+    if actual_sid == expected_resp:
+        return "Pass", ""
+
+    return "Fail", f"Unexpected response: {actual_sid}"
+
+def parse_line(line):
+    line = line.strip()
+    if not line or " d " not in line:
+        return None
+    parts = line.split()
+    try:
+        timestamp = float(parts[0])
+    except:
+        return None
+    can_id = parts[2].upper()
+    direction = parts[3]
+    data_bytes = parse_data_bytes(line)
+    return {
+        "timestamp": timestamp,
+        "can_id": can_id,
+        "direction": direction,
+        "data_bytes": data_bytes,
+        "raw": line
+    }
+
+
+
 def parse_asc_file(asc_file_path, allowed_tx_ids, allowed_rx_ids):
     messages_by_tc = defaultdict(list)
     current_request = None
-    start_ts = None
-    end_ts = None
-    awaiting_multiframe = False
+    start_ts, end_ts = None, None
     skip_next_fc = False
+    pending_flag = False
     rx_multi_response_pending = False
     rx_multi_response_first = None
-
-    mode = "ECU_INFO"
-    current_pc_id = None
 
     allowed_tx_ids = set(f"{id:X}" for id in allowed_tx_ids)
     allowed_rx_ids = set(f"{id:X}" for id in allowed_rx_ids)
@@ -26,328 +170,45 @@ def parse_asc_file(asc_file_path, allowed_tx_ids, allowed_rx_ids):
                 continue
 
             can_id = msg["can_id"].upper()
+            direction = msg["direction"]
+            data_bytes = [byte.upper() for byte in msg["data_bytes"]]  # ensure uppercase
 
-            # --- Process Tx ---
-            if msg["direction"] == "Tx" and can_id in allowed_tx_ids:
-                data_bytes = msg["data_bytes"]
+            if direction == "Tx" and can_id in allowed_tx_ids:
+                if data_bytes and data_bytes[0] == "10":
+                    skip_next_fc = True
 
-                # --- Phase change ---
-                if msg.get("tc_id") and msg["tc_id"].startswith("PC_ID"):
-                    current_pc_id = msg["tc_id"]
-
-                if msg.get("tc_id") and msg["tc_id"].startswith("TC_ID"):
-                    mode = "TEST_CASE"
-                    current_pc_id = None  # Reset PC_ID when new TC starts
-
-                # --- Multi-frame request ---
-                if data_bytes and data_bytes[0].upper() == "10":
+                desc, tc_id, expected_resp = get_description(data_bytes)
+                if desc and tc_id:
                     current_request = {
                         "timestamp": msg["timestamp"],
-                        "can_id": msg["can_id"],
-                        "direction": msg["direction"],
-                        "data_bytes": msg["data_bytes"],
-                        "desc": msg.get("desc", ""),
-                        "tc_id": msg.get("tc_id", ""),
-                        "expected_resp": msg.get("expected_resp", ""),
-                        "pc_id": current_pc_id,
-                        "status": "Pending",
-                        "response": None,
-                        "failure_reason": ""
+                        "can_id": can_id,
+                        "direction": direction,
+                        "data_bytes": data_bytes,
+                        "desc": desc,
+                        "tc_id": tc_id,
+                        "expected_resp": expected_resp,
+                        "status": "Pending"
                     }
-                    awaiting_multiframe = True
-                    skip_next_fc = True
 
-                else:
-                    # --- Single frame request ---
-                    current_request = {
-                        "timestamp": msg["timestamp"],
-                        "can_id": msg["can_id"],
-                        "direction": msg["direction"],
-                        "data_bytes": msg["data_bytes"],
-                        "desc": msg.get("desc", ""),
-                        "tc_id": msg.get("tc_id", ""),
-                        "expected_resp": msg.get("expected_resp", ""),
-                        "pc_id": current_pc_id,
-                        "status": "Pending",
-                        "response": None,
-                        "failure_reason": ""
-                    }
-                    awaiting_multiframe = False
-
-            # --- Process Rx ---
-            elif msg["direction"] == "Rx" and can_id in allowed_rx_ids:
-                data_bytes = msg["data_bytes"]
-
-                # --- Skip FlowControl ---
-                if skip_next_fc and data_bytes and data_bytes[0].upper() == "30":
+            elif direction == "Rx" and can_id in allowed_rx_ids:
+                if skip_next_fc and data_bytes and data_bytes[0] == "30":
                     skip_next_fc = False
                     continue
 
-                # --- Multi-frame Rx (first frame) ---
-                if data_bytes and data_bytes[0].upper() == "10":
+                # Handle response pending (0x7F .. 78)
+                if data_bytes and len(data_bytes) >= 4 and data_bytes[1] == "7F" and data_bytes[3] == "78":
+                    pending_flag = True
+                    continue
+
+                # Handle first frame of multi-frame response
+                if data_bytes and data_bytes[0] == "10":
                     rx_multi_response_first = msg
                     rx_multi_response_pending = True
                     continue
 
-                # --- Multi-frame Rx (consecutive frame) ---
-                if rx_multi_response_pending and data_bytes and data_bytes[0].upper() == "21":
+                # Handle continuation frame
+                if rx_multi_response_pending and data_bytes and data_bytes[0] == "21":
                     combined_bytes = rx_multi_response_first["data_bytes"][:7] + data_bytes[1:]
-                    rx_msg = {
-                        "timestamp": rx_multi_response_first["timestamp"],
-                        "can_id": rx_multi_response_first["can_id"],
-                        "direction": rx_multi_response_first["direction"],
-                        "data_bytes": combined_bytes
-                    }
-
-                    if current_request:
-                        status, reason = get_status(combined_bytes, current_request.get("expected_resp", ""))
-                        current_request["response"] = rx_msg
-                        current_request["status"] = status
-                        current_request["failure_reason"] = reason
-
-                        # Save only TEST_CASE
-                        if (
-                            current_request["tc_id"]
-                            and current_request["tc_id"].startswith("TC_ID")
-                            and mode == "TEST_CASE"
-                        ):
-                            messages_by_tc[current_request["tc_id"]].append(current_request)
-
-                        req_ts = current_request["timestamp"]
-                        res_ts = rx_msg["timestamp"]
-                        if start_ts is None or req_ts < start_ts:
-                            start_ts = req_ts
-                        if end_ts is None or res_ts > end_ts:
-                            end_ts = res_ts
-
-                        current_request = None
-
-                    rx_multi_response_pending = False
-                    rx_multi_response_first = None
-                    continue
-
-                # --- Single frame response ---
-                if current_request and not rx_multi_response_pending:
-                    status, reason = get_status(data_bytes, current_request.get("expected_resp", ""))
-                    current_request["response"] = msg
-                    current_request["status"] = status
-                    current_request["failure_reason"] = reason
-
-                    # Save only TEST_CASE
-                    if (
-                        current_request["tc_id"]
-                        and current_request["tc_id"].startswith("TC_ID")
-                        and mode == "TEST_CASE"
-                    ):
-                        messages_by_tc[current_request["tc_id"]].append(current_request)
-
-                    req_ts = current_request["timestamp"]
-                    res_ts = msg["timestamp"]
-                    if start_ts is None or req_ts < start_ts:
-                        start_ts = req_ts
-                    if end_ts is None or res_ts > end_ts:
-                        end_ts = res_ts
-
-                    current_request = None
-
-    return messages_by_tc, start_ts or 0, end_ts or 0
-
-
-###2
-def parse_asc_file(asc_file_path, allowed_tx_ids, allowed_rx_ids):
-    messages_by_tc = defaultdict(list)
-    start_ts = None
-    end_ts = None
-
-    current_tc_id = None
-    current_desc = None
-    current_request = None
-    awaiting_multiframe = False
-    skip_next_fc = False
-    rx_multi_response_pending = False
-    rx_multi_response_first = None
-
-    allowed_tx_ids = set(f"{id:X}" for id in allowed_tx_ids)
-    allowed_rx_ids = set(f"{id:X}" for id in allowed_rx_ids)
-
-    with open(asc_file_path, "r", encoding="utf-8", errors="ignore") as f:
-        for line in f:
-            line = line.strip()
-            if not line or not re.match(r"^\d+\.\d+", line):
-                continue
-
-            msg = parse_line(line)
-            if not msg:
-                continue
-
-            can_id = msg["can_id"].upper()
-
-            # --- Tx Message ---
-            if msg["direction"] == "Tx" and can_id in allowed_tx_ids:
-                data_bytes = msg["data_bytes"]
-
-                # New PC/TC with description:
-                if msg.get("tc_id") and msg.get("desc"):
-                    current_tc_id = msg["tc_id"]
-                    current_desc = msg["desc"]
-
-                if not current_tc_id:
-                    continue  # skip Tx if no known TC
-
-                # New request
-                current_request = {
-                    "timestamp": msg["timestamp"],
-                    "can_id": msg["can_id"],
-                    "direction": msg["direction"],
-                    "data_bytes": msg["data_bytes"],
-                    "desc": current_desc or "",
-                    "tc_id": current_tc_id or "",
-                    "expected_resp": msg.get("expected_resp", ""),
-                    "status": "Pending",
-                    "response": None,
-                    "failure_reason": ""
-                }
-
-                messages_by_tc[current_tc_id].append(current_request)
-
-                # Multi-frame?
-                if data_bytes and data_bytes[0].upper() == "10":
-                    awaiting_multiframe = True
-                    skip_next_fc = True
-                else:
-                    awaiting_multiframe = False
-
-            # --- Rx Message ---
-            elif msg["direction"] == "Rx" and can_id in allowed_rx_ids:
-                data_bytes = msg["data_bytes"]
-
-                # Flow control
-                if skip_next_fc and data_bytes and data_bytes[0].upper() == "30":
-                    skip_next_fc = False
-                    continue
-
-                # Multi-frame response start
-                if data_bytes and data_bytes[0].upper() == "10":
-                    rx_multi_response_first = msg
-                    rx_multi_response_pending = True
-                    continue
-
-                # Multi-frame continuation
-                if rx_multi_response_pending and data_bytes and data_bytes[0].upper() == "21":
-                    combined_bytes = rx_multi_response_first["data_bytes"][:7] + data_bytes[1:]
-                    rx_msg = {
-                        "timestamp": rx_multi_response_first["timestamp"],
-                        "can_id": rx_multi_response_first["can_id"],
-                        "direction": rx_multi_response_first["direction"],
-                        "data_bytes": combined_bytes
-                    }
-
-                    if current_request:
-                        status, reason = get_status(combined_bytes, current_request.get("expected_resp", ""))
-                        current_request["response"] = rx_msg
-                        current_request["status"] = status
-                        current_request["failure_reason"] = reason
-
-                        # timestamps
-                        req_ts = current_request["timestamp"]
-                        res_ts = rx_msg["timestamp"]
-                        if start_ts is None or req_ts < start_ts:
-                            start_ts = req_ts
-                        if end_ts is None or res_ts > end_ts:
-                            end_ts = res_ts
-
-                        current_request = None
-
-                    rx_multi_response_pending = False
-                    rx_multi_response_first = None
-                    continue
-
-                # Single-frame response
-                if current_request and not rx_multi_response_pending:
-                    status, reason = get_status(data_bytes, current_request.get("expected_resp", ""))
-                    current_request["response"] = msg
-                    current_request["status"] = status
-                    current_request["failure_reason"] = reason
-
-                    # timestamps
-                    req_ts = current_request["timestamp"]
-                    res_ts = msg["timestamp"]
-                    if start_ts is None or req_ts < start_ts:
-                        start_ts = req_ts
-                    if end_ts is None or res_ts > end_ts:
-                        end_ts = res_ts
-
-                    current_request = None
-
-    return messages_by_tc, start_ts or 0, end_ts or 0
-
-
-
-##1
-def parse_asc_file(asc_file_path, allowed_tx_ids, allowed_rx_ids):
-    messages_by_tc = defaultdict(list)
-    current_request = None
-    start_ts = None
-    end_ts = None
-    awaiting_multiframe = False
-    skip_next_fc = False
-    rx_multi_response_pending = False
-    rx_multi_response_first = None
-
-    allowed_tx_ids = set(f"{id:X}" for id in allowed_tx_ids)
-    allowed_rx_ids = set(f"{id:X}" for id in allowed_rx_ids)
-
-    with open(asc_file_path, "r", encoding="utf-8", errors="ignore") as f:
-        for line in f:
-            line = line.strip()
-            if not line or not re.match(r"^\d+\.\d+", line):
-                continue
-
-            msg = parse_line(line)
-            if not msg:
-                continue
-
-            can_id = msg["can_id"].upper()
-
-            # Process Tx messages
-            if msg["direction"] == "Tx" and can_id in allowed_tx_ids:
-                data_bytes = msg["data_bytes"]
-
-                # Multi-frame request
-                if data_bytes and data_bytes[0].upper() == "10":
-                    current_request = msg
-                    awaiting_multiframe = True
-                    skip_next_fc = True
-                else:
-                    # Single frame
-                    if msg.get("tc_id") and msg.get("desc"):
-                        current_request = msg
-                        awaiting_multiframe = False
-
-            # Process Rx messages
-            elif msg["direction"] == "Rx" and can_id in allowed_rx_ids:
-                data_bytes = msg["data_bytes"]
-
-                # Flow Control frame
-                if skip_next_fc and data_bytes and data_bytes[0].upper() == "30":
-                    skip_next_fc = False
-                    continue
-
-                # Multi-frame response - first frame
-                if data_bytes and data_bytes[0].upper() == "10":
-                    rx_multi_response_first = msg
-                    rx_multi_response_pending = True
-                    continue
-
-                # Multi-frame response - consecutive frame
-                if rx_multi_response_pending and data_bytes and data_bytes[0].upper() == "21":
-                    combined_bytes = rx_multi_response_first["data_bytes"][:7] + data_bytes[1:]
-
-                    # Skip ResponsePending
-                    if combined_bytes[0].upper() == "7F" and combined_bytes[2].upper() == "78":
-                        logging.debug("Multi-frame ResponsePending (0x78), waiting...")
-                        continue
-
                     rx_msg = {
                         "timestamp": rx_multi_response_first["timestamp"],
                         "can_id": rx_multi_response_first["can_id"],
@@ -364,12 +225,10 @@ def parse_asc_file(asc_file_path, allowed_tx_ids, allowed_rx_ids):
                         if current_request["tc_id"] and not current_request["tc_id"].startswith("ECU_INFO"):
                             messages_by_tc[current_request["tc_id"]].append(current_request)
 
-                        req_ts = current_request["timestamp"]
-                        res_ts = rx_msg["timestamp"]
-                        if start_ts is None or req_ts < start_ts:
-                            start_ts = req_ts
-                        if end_ts is None or res_ts > end_ts:
-                            end_ts = res_ts
+                            req_ts = current_request["timestamp"]
+                            res_ts = rx_msg["timestamp"]
+                            start_ts = min(start_ts or req_ts, req_ts)
+                            end_ts = max(end_ts or res_ts, res_ts)
 
                         current_request = None
 
@@ -377,13 +236,28 @@ def parse_asc_file(asc_file_path, allowed_tx_ids, allowed_rx_ids):
                     rx_multi_response_first = None
                     continue
 
-                # Single frame response
-                if current_request and not rx_multi_response_pending:
-                    # Skip ResponsePending
-                    if data_bytes[0].upper() == "7F" and data_bytes[2].upper() == "78":
-                        logging.debug("Single frame ResponsePending (0x78), waiting...")
-                        continue
+                # If response was pending, handle the next Rx as the actual response
+                if pending_flag:
+                    if current_request:
+                        status, reason = get_status(data_bytes, current_request.get("expected_resp", ""))
+                        current_request["response"] = msg
+                        current_request["status"] = status
+                        current_request["failure_reason"] = reason
 
+                        if current_request["tc_id"] and not current_request["tc_id"].startswith("ECU_INFO"):
+                            messages_by_tc[current_request["tc_id"]].append(current_request)
+
+                            req_ts = current_request["timestamp"]
+                            res_ts = msg["timestamp"]
+                            start_ts = min(start_ts or req_ts, req_ts)
+                            end_ts = max(end_ts or res_ts, res_ts)
+
+                        current_request = None
+                    pending_flag = False
+                    continue
+
+                # Regular single-frame Rx response
+                if current_request:
                     status, reason = get_status(data_bytes, current_request.get("expected_resp", ""))
                     current_request["response"] = msg
                     current_request["status"] = status
@@ -392,130 +266,140 @@ def parse_asc_file(asc_file_path, allowed_tx_ids, allowed_rx_ids):
                     if current_request["tc_id"] and not current_request["tc_id"].startswith("ECU_INFO"):
                         messages_by_tc[current_request["tc_id"]].append(current_request)
 
-                    req_ts = current_request["timestamp"]
-                    res_ts = msg["timestamp"]
-                    if start_ts is None or req_ts < start_ts:
-                        start_ts = req_ts
-                    if end_ts is None or res_ts > end_ts:
-                        end_ts = res_ts
+                        req_ts = current_request["timestamp"]
+                        res_ts = msg["timestamp"]
+                        start_ts = min(start_ts or req_ts, req_ts)
+                        end_ts = max(end_ts or res_ts, res_ts)
 
                     current_request = None
 
     return messages_by_tc, start_ts or 0, end_ts or 0
 
 
-###ECU info
 
-def get_ecu_information(self, oled=None, logging_enable=True):
-    testcase_file_path = self.get_testcase_file_path()
-    if logging_enable:
-        self.start_logging(log_name_suffix="ECU_Info")
+def generate_html_report(messages_by_tc, output_path, asc_filename, start_ts, end_ts, ecu_info_data=None,target_ecu=None):
+    total = len(messages_by_tc)
+    passed = sum(1 for tc in messages_by_tc.values() if all(msg["status"] == "Pass" for msg in tc))
+    failed = total - passed
+    duration = end_ts - start_ts
+    generated_time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
-    ecu_info = {}
-    session_default = int(self.uds_config["default_session"], 16)
-    session_extended = int(self.uds_config["extended_session"], 16)
+    html = f"""<html><head><title>UDS Diagnostic Report</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {{ font-family: Arial; margin: 20px; }}
+        .pass {{ color: green; font-weight: bold; }}
+        .fail {{ color: red; font-weight: bold; }}
+        summary {{ font-weight: bold; cursor: pointer; }}
+        table {{ border-collapse: collapse; width: 100%; margin-top: 10px; }}
+        th, td {{ border: 1px solid #ccc; padding: 8px; }}
+        th {{ background: #f0f0f0; }}
+        #chart-container {{ width: 300px; margin: 20px auto; }}
+    </style></head><body>
+    
+    
+    <div style="text-align: center;">
+        <h1>UDS Diagnostic Report</h1>
+    </div>
+    
+    
+    <div style="display: flex; justify-content: space-between; margin-bottom: 20px; align-items: flex-start;">
 
-    grouped_cases = load_testcases(testcase_file_path)
-    time.sleep(0.5)
+       
+        <div style="flex: 1; text-align: left;">
+            <p><strong>Generated:</strong> {generated_time}</p>
+            <p><strong>CAN Log File:</strong> {asc_filename}</p>
+            <p><strong>Total Test Cases:</strong> {total}</p>
+            <p class="pass"><strong>Passed:</strong> {passed}</p>
+            <p class="fail"><strong>Failed:</strong> {failed}</p>
+            <p><strong>Test Duration:</strong> {duration:.3f} seconds</p>
+        </div>
 
-    def normalize_hex_string(val):
-        return val.lower().replace("0x", "").strip()
+        
+        <div style="flex: 0 0 auto; text-align: left; margin-left: 40px;">
+            <p><strong>ECU Information:</strong></p>
+    """
 
-    with Client(self.active_conn["conn"], request_timeout=2, config=self.client_config) as client:
-        try:
-            client.change_session(session_default)
-            time.sleep(0.2)
-            client.change_session(session_extended)
-            time.sleep(0.2)
+    if target_ecu:
+        html += f"<p><strong>Target ECU:</strong> {escape(target_ecu)}</p>"
+        
+    if ecu_info_data:
+        for key, value in ecu_info_data.items():
+            html += f"<p><strong>{escape(key)}:</strong> {escape(value)}</p>"
 
-        except Exception as e:
-            if oled:
-                oled.display_centered_text(f"Session Error:\n{str(e)}")
-            logging.error(f"Session change failed: {e}")
-            return
+    html += "</div></div>"
 
-        for tc_id, steps in grouped_cases.items():
-            if not tc_id.startswith("ECU_INFO"):
-                continue
+    html += """
+    <div id="chart-container"><canvas id="passFailChart"></canvas></div>
+    <script>
+        const ctx = document.getElementById('passFailChart').getContext('2d');
+        new Chart(ctx, {
+            type: 'pie',
+            data: {
+                labels: ['Passed', 'Failed'],
+                datasets: [{
+                    data: [%d, %d],
+                    backgroundColor: ['#4CAF50', '#F44336']
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: { position: 'bottom' },
+                    title: { display: true, text: 'Test Case Results' }
+                }
+            }
+        });
+    </script>
+    <hr><br>
+    """ % (passed, failed)
 
-            logging.info(f"[ECU Info] Processing {tc_id}")
+ 
+    for tc_id, steps in messages_by_tc.items():
+        status = steps[0]['status']
+        status_class = 'pass' if status == 'Pass' else 'fail'
+        html += f"<details><summary>{tc_id} - <span class='{status_class}'>{status}</span></summary>\n"
+        html += """<table><tr><th>Step</th><th>Description</th><th>Timestamp</th><th>Type</th><th>Status</th><th>Failure Reason</th></tr>\n"""
+        step_count = 1
+        for msg in steps:
+            html += f"<tr><td>{step_count}</td><td>{escape(msg['desc'])}</td><td>{msg['timestamp']:.6f}</td><td>Request Sent</td><td></td><td>-</td></tr>\n"
+            step_count += 1
+            response = msg.get("response", {})
+            html += f"<tr><td>{step_count}</td><td></td><td>{response.get('timestamp', ''):.6f}</td><td>Response Received</td><td>{msg['status']}</td><td>{msg.get('failure_reason', '')}</td></tr>\n"
+            step_count += 1
+        html += "</table></details>\n"
 
-            for step in steps:
-                logging.debug(f"[ECU Info] Step={step}")
+    html += "</body></html>"
 
-                try:
-                    tc_id, step_desc, service, subfunc, expected, *rest = step
+    with open(output_path, "w", encoding="utf-8") as f:
+        f.write(html)
 
-                    service_clean = normalize_hex_string(service)
-                    subfunc_clean = normalize_hex_string(subfunc)
+    print(f"UDS HTML Report generated at:\n{output_path}\n")
 
-                    try:
-                        service_int = int(service_clean, 16)
-                        did = int(subfunc_clean, 16)
-                    except ValueError as ve:
-                        logging.error(f"[ECU Info] Invalid service or subfunc '{subfunc}' in {tc_id} step '{step_desc}': {ve}")
-                        continue
 
-                    # RAW request
-                    if service_int == 0x22:  # ReadDataByIdentifier
-                        did_hi = (did >> 8) & 0xFF
-                        did_lo = did & 0xFF
-                        raw_request = bytes([0x22, did_hi, did_lo])
-                    else:
-                        raw_request = bytes([service_int, did])
 
-                    logging.info(f"[ECU Info] Sending raw request: {raw_request.hex()}")
+def generate_report(asc_file_path, txt_file_path, output_html_file, allowed_tx_ids, allowed_rx_ids, ecu_info_data=None,target_ecu=None):
+    global DESCRIPTION_MAP
+    DESCRIPTION_MAP = load_description_map(txt_file_path)
+    get_description.used_tc_ids = set()
 
-                    client.conn.send(raw_request)
-                    response = client.conn.wait_frame(timeout=2)
+    messages_by_tc, start_ts, end_ts = parse_asc_file(
+        asc_file_path, allowed_tx_ids, allowed_rx_ids
+    )
 
-                    raw_payload = list(response)
-                    logging.debug(f"[ECU Info] Received raw payload: {raw_payload}")
+    report_path = output_html_file
 
-                    # Validate response
-                    if service_int == 0x22:
-                        if raw_payload[0] != 0x62:
-                            raise Exception(f"Unexpected response: {raw_payload}")
-                        if raw_payload[1] != did_hi or raw_payload[2] != did_lo:
-                            raise Exception(f"DID mismatch: {raw_payload}")
+    generate_html_report(
+        messages_by_tc,
+        report_path,
+        os.path.basename(asc_file_path),
+        start_ts,
+        end_ts,
+        ecu_info_data,
+        target_ecu
+    )
 
-                        raw_data = raw_payload[3:]
-                    else:
-                        raw_data = raw_payload[1:]
 
-                    # Build HEX string
-                    hex_str = ' '.join(f"{b:02X}" for b in raw_data)
 
-                    # Try ASCII conversion if printable
-                    try:
-                        ascii_str = bytes(raw_data).decode("ascii").strip()
-                        if all(32 <= ord(c) <= 126 for c in ascii_str):
-                            display_value = ascii_str
-                        else:
-                            display_value = hex_str
-                    except:
-                        display_value = hex_str
 
-                    # Store value
-                    ecu_info[step_desc] = display_value
 
-                    if oled:
-                        oled.display_centered_text(f"{step_desc}\n{display_value}")
-                        time.sleep(2)
-
-                    logging.info(f"[ECU Info] {step_desc} ({subfunc}) = {display_value}")
-
-                except Exception as e:
-                    error_msg = str(e)[:40]
-                    ecu_info[step_desc] = f"Error: {error_msg}"
-
-                    if oled:
-                        oled.display_centered_text(f"{step_desc}\nError: {error_msg}")
-
-                    logging.error(f"[ECU Info] {step_desc} - Exception: {e}")
-
-                time.sleep(0.1)
-
-    if logging_enable:
-        self.stop_logging()
-    return ecu_info
