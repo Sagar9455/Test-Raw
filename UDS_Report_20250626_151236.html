@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html>
+<head><title>UDS Diagnostic Report</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+  body { font-family: Arial; margin: 20px; }
+  .pass { color: green; font-weight: bold; }
+  .fail { color: red; font-weight: bold; }
+  .wrapper {
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    gap: 50px;
+    margin-top: 20px;
+  }
+  .summary-block { text-align: left; min-width: 250px; }
+  #chart-container { width: 300px; }
+  table { border-collapse: collapse; width: 100%; margin-top: 10px; }
+  th, td { border: 1px solid #ccc; padding: 8px; }
+  th { background: #f0f0f0; }
+  summary { font-weight: bold; cursor: pointer; }
+</style>
+</head>
+<body>
+
+<h1 style="text-align: center;">UDS Diagnostic Report</h1>
+
+<div style="display: flex; justify-content: flex-start; align-items: flex-start; gap: 40px; margin-top: 20px; padding-left: 10px;">
+    <div style="width: 650px;">
+    
+        <p><strong>Target ECU:</strong> MKBD</p>
+        <p><strong>S/W Version:</strong> 01.01.00</p><p><strong>B-CAN Version:</strong> %</p><p><strong>Manufacturing Date:</strong> 00 00 00 00</p><p><strong>ECU_Serial Number:</strong> a811234579</p><p><strong>H/W Version:</strong> 01.00</p>
+        <p><strong>Generated:</strong> 2025-06-26 15:12:36</p>
+        <p><strong>CAN Log File:</strong> CANLog_Testcase_20250626_151159.asc</p>
+        <p><strong>Total Test Cases:</strong> 4</p>
+        <p class="pass"><strong>Passed:</strong> 3</p>
+        <p class="fail"><strong>Failed:</strong> 1</p>
+        <p><strong>Test Duration:</strong> 12.804 seconds</p>
+        
+    </div>
+
+    <div id="chart-container" style="width: 320px; margin-left:70px;">
+        <canvas id="passFailChart" width="300" height="300"></canvas>
+    </div>
+</div>
+
+
+<script>
+  const ctx = document.getElementById('passFailChart').getContext('2d');
+  new Chart(ctx, {
+    type: 'pie',
+    data: {
+      labels: ['Passed', 'Failed'],
+      datasets: [{
+        data: [3, 1],
+        backgroundColor: ['#4CAF50', '#F44336']
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: {
+        legend: { position: 'bottom' },
+        title: { display: true, text: 'Test Case Results' }
+      }
+    }
+  });
+</script>
+
+<hr><br>
+<details><summary>TC_038 - <span class='fail'>Fail</span></summary>
+<table><tr><th>Step</th><th>Description</th><th>Timestamp</th><th>Type</th><th>Status</th><th>Failure Reason</th></tr>
+<tr><td>1</td><td>EnableRxAndEnableTx(28 00)</td><td>15.950216</td><td>Request Sent</td><td></td><td>-</td></tr>
+<tr><td>2</td><td></td><td>15.974951</td><td>Response Received</td><td>Fail</td><td>requestOutOfRange</td></tr>
+<tr><td>3</td><td>EnableRxAndEnableTx(28 00)</td><td>28.745365</td><td>Request Sent</td><td></td><td>-</td></tr>
+<tr><td>4</td><td></td><td>28.753925</td><td>Response Received</td><td>Fail</td><td>incorrectMessageLengthOrInvalidFormat</td></tr>
+</table></details>
+<details><summary>TC_039 - <span class='pass'>Pass</span></summary>
+<table><tr><th>Step</th><th>Description</th><th>Timestamp</th><th>Type</th><th>Status</th><th>Failure Reason</th></tr>
+<tr><td>1</td><td>EnableRxAndDisableTx(28 01)\ntestcase</td><td>19.159015</td><td>Request Sent</td><td></td><td>-</td></tr>
+<tr><td>2</td><td></td><td>19.175072</td><td>Response Received</td><td>Pass</td><td></td></tr>
+</table></details>
+<details><summary>TC_040 - <span class='pass'>Pass</span></summary>
+<table><tr><th>Step</th><th>Description</th><th>Timestamp</th><th>Type</th><th>Status</th><th>Failure Reason</th></tr>
+<tr><td>1</td><td>DisableRxAndEnableTx(28 02)</td><td>22.354177</td><td>Request Sent</td><td></td><td>-</td></tr>
+<tr><td>2</td><td></td><td>22.373849</td><td>Response Received</td><td>Pass</td><td></td></tr>
+</table></details>
+<details><summary>TC_041 - <span class='pass'>Pass</span></summary>
+<table><tr><th>Step</th><th>Description</th><th>Timestamp</th><th>Type</th><th>Status</th><th>Failure Reason</th></tr>
+<tr><td>1</td><td>DisableRxAndDisableTx(28 03)</td><td>25.550777</td><td>Request Sent</td><td></td><td>-</td></tr>
+<tr><td>2</td><td></td><td>25.573934</td><td>Response Received</td><td>Pass</td><td></td></tr>
+</table></details>
+</body></html>
