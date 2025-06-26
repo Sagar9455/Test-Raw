@@ -1,74 +1,98 @@
-def generate_html_report(messages_by_tc, output_path, asc_filename, start_ts, end_ts, ecu_info_data=None, target_ecu=None):
-    total = len(messages_by_tc)
-    passed = sum(1 for tc in messages_by_tc.values() if all(msg["status"] == "Pass" for msg in tc))
-    failed = total - passed
-    duration = end_ts - start_ts
-    generated_time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-
-    html = f"""<!DOCTYPE html>
-<html>
-<head><title>UDS Diagnostic Report</title>
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<style>
-  body {{ font-family: Arial; margin: 20px; }}
-  .pass {{ color: green; font-weight: bold; }}
-  .fail {{ color: red; font-weight: bold; }}
-  .wrapper {{
-    display: flex;
-    justify-content: center;
-    align-items: flex-start;
-    gap: 50px;
-    margin-top: 20px;
-  }}
-  .summary-block {{ text-align: left; min-width: 250px; }}
-  #chart-container {{ width: 300px; }}
-  table {{ border-collapse: collapse; width: 100%; margin-top: 10px; }}
-  th, td {{ border: 1px solid #ccc; padding: 8px; }}
-  th {{ background: #f0f0f0; }}
-  summary {{ font-weight: bold; cursor: pointer; }}
-</style>
-</head>
-<body>
-
-<h1 style="text-align: center;">UDS Diagnostic Report</h1>
-
-<div style="display: flex; justify-content: flex-start; align-items: flex-start; gap: 40px; margin-top: 20px; padding-left: 10px;">
-    <div style="width: 280px;">
-        <p><strong>Generated:</strong> {generated_time}</p>
-        <p><strong>CAN Log File:</strong> {asc_filename}</p>
-        <p><strong>Total Test Cases:</strong> {total}</p>
-        <p class="pass"><strong>Passed:</strong> {passed}</p>
-        <p class="fail"><strong>Failed:</strong> {failed}</p>
-        <p><strong>Test Duration:</strong> {duration:.3f} seconds</p>
-        {f"<p><strong>Target ECU:</strong> {escape(target_ecu)}</p>" if target_ecu else ""}
-        {"".join(f"<p><strong>{escape(k)}:</strong> {escape(v)}</p>" for k, v in ecu_info_data.items()) if ecu_info_data else ""}
-    </div>
-
-    <div id="chart-container" style="width: 320px;">
-        <canvas id="passFailChart" width="300" height="300"></canvas>
-    </div>
-</div>
-
-
-<script>
-  const ctx = document.getElementById('passFailChart').getContext('2d');
-  new Chart(ctx, {{
-    type: 'pie',
-    data: {{
-      labels: ['Passed', 'Failed'],
-      datasets: [{{
-        data: [{passed}, {failed}],
-        backgroundColor: ['#4CAF50', '#F44336']
-      }}]
-    }},
-    options: {{
-      responsive: true,
-      plugins: {{
-        legend: {{ position: 'bottom' }},
-        title: {{ display: true, text: 'Test Case Results' }}
-      }}
-    }}
-  }});
-</script>
-
-<hr><br>
+ with Client(self.active_conn["conn"], request_timeout=2, config=self.client_config) as client:
+                try:
+                    client.change_session(session_default)
+                    time.sleep(0.2)
+                    client.change_session(session_extended)
+                    time.sleep(0.2)
+            
+                except Exception as e:
+                    if oled:
+                        oled.display_centered_text(f"Session Error:\n{str(e)}")
+                    logging.error(f"Session change failed: {e}")
+                    return
+            
+                for tc_id, steps in grouped_cases.items():
+                    if not tc_id.startswith("ECU_INFO"):
+                        continue
+            
+                    logging.info(f"[ECU Info] Processing {tc_id}")
+            
+                    for step in steps:
+                        logging.debug(f"[ECU Info] Step={step}")
+            
+                        try:
+                            tc_id, step_desc, service, subfunc, expected, *rest = step
+            
+                            service_clean = normalize_hex_string(service)
+                            subfunc_clean = normalize_hex_string(subfunc)
+            
+                            try:
+                                service_int = int(service_clean, 16)
+                                did = int(subfunc_clean, 16)
+                            except ValueError as ve:
+                                logging.error(f"[ECU Info] Invalid service or subfunc '{subfunc}' in {tc_id} step '{step_desc}': {ve}")
+                                continue
+            
+                            # RAW request
+                            if service_int == 0x22:  # ReadDataByIdentifier
+                                did_hi = (did >> 8) & 0xFF
+                                did_lo = did & 0xFF
+                                raw_request = bytes([0x22, did_hi, did_lo])
+                            else:
+                                raw_request = bytes([service_int, did])
+            
+                            logging.info(f"[ECU Info] Sending raw request: {raw_request.hex()}")
+            
+                            client.conn.send(raw_request)
+                            response = client.conn.wait_frame(timeout=2)
+                
+                            raw_payload = list(response)
+                            logging.debug(f"[ECU Info] Received raw payload: {raw_payload}")
+            
+                            # Validate response
+                            if service_int == 0x22:
+                                if raw_payload[0] != 0x62:
+                                    raise Exception(f"Unexpected response: {raw_payload}")
+                                if raw_payload[1] != did_hi or raw_payload[2] != did_lo:
+                                    raise Exception(f"DID mismatch: {raw_payload}")
+            
+                                raw_data = raw_payload[3:]
+                            else:
+                                raw_data = raw_payload[1:]
+            
+                            # Build HEX string
+                            hex_str = ' '.join(f"{b:02X}" for b in raw_data)
+            
+                            # Try ASCII conversion if printable
+                            try:
+                                ascii_str = bytes(raw_data).decode("ascii").strip()
+                                #if all(32 <= ord(c) <= 126 for c in ascii_str):
+                                display_value = ascii_str
+                                #else:
+                                  #  display_value = hex_str
+                            except:
+                                display_value = hex_str
+            
+                            # Store value
+                            ecu_info[step_desc] = display_value
+            
+                            if oled:
+                                oled.display_centered_text(f"{step_desc}\n{display_value}")
+                                time.sleep(2)
+            
+                            logging.info(f"[ECU Info] {step_desc} ({subfunc}) = {display_value}")
+            
+                        except Exception as e:
+                            error_msg = str(e)[:40]
+                            ecu_info[step_desc] = f"Error: {error_msg}"
+            
+                            if oled:
+                                oled.display_centered_text(f"{step_desc}\nError: {error_msg}")
+            
+                            logging.error(f"[ECU Info] {step_desc} - Exception: {e}")
+            
+                        time.sleep(0.1)
+            
+            if logging_enable:
+                self.stop_logging()
+            return ecu_info
