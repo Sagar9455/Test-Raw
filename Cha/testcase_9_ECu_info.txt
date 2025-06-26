@@ -1,0 +1,14 @@
+#TC_ID/PC_ID , Testcase_Description, Service_ID, SubService_ID, Expected_Response_Data, Write_Data, Addressing
+ECU_INFO-1 , S/W Version,0x22,0xF1DD,0x62,  ,Physical
+ECU_INFO-2 , B-CAN Version,0x22,0xF100,0x62,  ,Physical
+ECU_INFO-3 , Manufacturing Date,0x22,0xF18B,0x62,  ,Physical
+ECU_INFO-4 , ECU_Serial Number,0x22,0xF18C,0x62,  ,Physical
+ECU_INFO-5 , H/W Version,0x22,0xF193,0x62,  ,Physical
+TC_038 , EnableRxAndEnableTx(28 00) , 0x28 , 0x00 , 0x68 ,
+TC_039 , EnableRxAndDisableTx(28 01), 0x28 , 0x01 , 0x68
+TC_040 , DisableRxAndEnableTx(28 02) , 0x28 , 0x02 , 0x68
+TC_041 , DisableRxAndDisableTx(28 03) , 0x28 , 0x03 , 0x68
+TC_042 , DisableRxAndEnableTx(28 02) , 0x28 ,  , 0x68
+
+
+
