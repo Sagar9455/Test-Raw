@@ -1,98 +1,14 @@
- with Client(self.active_conn["conn"], request_timeout=2, config=self.client_config) as client:
-                try:
-                    client.change_session(session_default)
-                    time.sleep(0.2)
-                    client.change_session(session_extended)
-                    time.sleep(0.2)
-            
-                except Exception as e:
-                    if oled:
-                        oled.display_centered_text(f"Session Error:\n{str(e)}")
-                    logging.error(f"Session change failed: {e}")
-                    return
-            
-                for tc_id, steps in grouped_cases.items():
-                    if not tc_id.startswith("ECU_INFO"):
-                        continue
-            
-                    logging.info(f"[ECU Info] Processing {tc_id}")
-            
-                    for step in steps:
-                        logging.debug(f"[ECU Info] Step={step}")
-            
-                        try:
-                            tc_id, step_desc, service, subfunc, expected, *rest = step
-            
-                            service_clean = normalize_hex_string(service)
-                            subfunc_clean = normalize_hex_string(subfunc)
-            
-                            try:
-                                service_int = int(service_clean, 16)
-                                did = int(subfunc_clean, 16)
-                            except ValueError as ve:
-                                logging.error(f"[ECU Info] Invalid service or subfunc '{subfunc}' in {tc_id} step '{step_desc}': {ve}")
-                                continue
-            
-                            # RAW request
-                            if service_int == 0x22:  # ReadDataByIdentifier
-                                did_hi = (did >> 8) & 0xFF
-                                did_lo = did & 0xFF
-                                raw_request = bytes([0x22, did_hi, did_lo])
-                            else:
-                                raw_request = bytes([service_int, did])
-            
-                            logging.info(f"[ECU Info] Sending raw request: {raw_request.hex()}")
-            
-                            client.conn.send(raw_request)
-                            response = client.conn.wait_frame(timeout=2)
-                
-                            raw_payload = list(response)
-                            logging.debug(f"[ECU Info] Received raw payload: {raw_payload}")
-            
-                            # Validate response
-                            if service_int == 0x22:
-                                if raw_payload[0] != 0x62:
-                                    raise Exception(f"Unexpected response: {raw_payload}")
-                                if raw_payload[1] != did_hi or raw_payload[2] != did_lo:
-                                    raise Exception(f"DID mismatch: {raw_payload}")
-            
-                                raw_data = raw_payload[3:]
-                            else:
-                                raw_data = raw_payload[1:]
-            
-                            # Build HEX string
-                            hex_str = ' '.join(f"{b:02X}" for b in raw_data)
-            
-                            # Try ASCII conversion if printable
-                            try:
-                                ascii_str = bytes(raw_data).decode("ascii").strip()
-                                #if all(32 <= ord(c) <= 126 for c in ascii_str):
-                                display_value = ascii_str
-                                #else:
-                                  #  display_value = hex_str
-                            except:
-                                display_value = hex_str
-            
-                            # Store value
-                            ecu_info[step_desc] = display_value
-            
-                            if oled:
-                                oled.display_centered_text(f"{step_desc}\n{display_value}")
-                                time.sleep(2)
-            
-                            logging.info(f"[ECU Info] {step_desc} ({subfunc}) = {display_value}")
-            
-                        except Exception as e:
-                            error_msg = str(e)[:40]
-                            ecu_info[step_desc] = f"Error: {error_msg}"
-            
-                            if oled:
-                                oled.display_centered_text(f"{step_desc}\nError: {error_msg}")
-            
-                            logging.error(f"[ECU Info] {step_desc} - Exception: {e}")
-            
-                        time.sleep(0.1)
-            
-            if logging_enable:
-                self.stop_logging()
-            return ecu_info
+# Build HEX string
+hex_str = ' '.join(f"{b:02X}" for b in raw_data)
+
+# Determine if this is a special DID that should display in hex
+is_force_hex_did = service_int == 0x22 and did in {0xF18B}
+
+if is_force_hex_did:
+    display_value = hex_str
+else:
+    try:
+        ascii_str = bytes(raw_data).decode("ascii").strip()
+        display_value = ascii_str
+    except Exception:
+        display_value = hex_str  # Fallback to hex
