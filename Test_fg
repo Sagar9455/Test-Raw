@@ -1,33 +1,28 @@
-elif service_int == 0x28:
-    subfunc_clean = subfunc.strip()
-    expected_clean = expected.strip() if expected else ""
+elif service_int == 0x28:  # CommunicationControl using raw request
+    try:
+        subfunc_clean = subfunc.strip()
+        control_type = int(subfunc_clean, 16)
 
-    if subfunc_clean:
-        try:
-            # Convert subfunction to int
-            subfunc_int = int(subfunc_clean, 16)
-            comm_type = 0x00  # Default communication type
-            raw_request = bytes([0x28, subfunc_int, comm_type])
+        # Determine communication type dynamically
+        if control_type in (0x00, 0x01, 0x02, 0x03):
+            communication_type = control_type  # Map 1:1 for basic cases
+        else:
+            logging.warning(f"{tc_id} - Unknown CommControl subfunc: {hex(control_type)}. Using 0x00")
+            communication_type = 0x00
 
-            logging.info(f"{tc_id} - {step_desc}: Sending {raw_request.hex().upper()}")
-            client.conn.send(raw_request)
-            response_data = client.conn.wait_frame(timeout=2)
+        # Build raw request: 28 <control_type> <comm_type>
+        raw_request = bytes([0x28, control_type, communication_type])
+        logging.info(f"{tc_id} - {step_desc}: Sending raw request {raw_request.hex().upper()}")
+        client.conn.send(raw_request)
+        response = client.conn.wait_frame(timeout=2)
 
-        except ValueError as e:
-            logging.error(f"{tc_id} - Invalid subfunction format for 0x28: {subfunc} → {e}")
-            response_data = None
+        # Check if positive response SID = 0x68
+        if response and response[0] == 0x68:
+            logging.info(f"{tc_id} - ✅ Positive response received: {response.hex().upper()}")
+        else:
+            logging.error(f"{tc_id} - ❌ Unexpected response: {response.hex().upper() if response else 'None'}")
 
-    else:
-        # Fallback: Build raw request using expected bytes
-        try:
-            subfunc_bytes = bytes.fromhex(subfunc_clean) if subfunc_clean else b''
-            expected_bytes = bytes.fromhex(expected_clean) if expected_clean else b''
-            raw_request = bytearray([service_int]) + subfunc_bytes + expected_bytes
-
-            logging.info(f"{tc_id} - {step_desc}: Sending {raw_request.hex().upper()}")
-            client.conn.send(raw_request)
-            response_data = client.conn.wait_frame(timeout=2)
-
-        except ValueError as e:
-            logging.error(f"{tc_id} - Invalid hex input for raw fallback in 0x28: {e}")
-            response_data = None
+    except ValueError:
+        logging.error(f"{tc_id} - Invalid subfunction format: '{subfunc}'")
+    except Exception as e:
+        logging.error(f"{tc_id} - Error sending CommunicationControl raw request: {e}")
