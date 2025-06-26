@@ -1,95 +1,16 @@
-def generate_html_report(messages_by_tc, output_path, asc_filename, start_ts, end_ts, ecu_info_data=None, target_ecu=None):
-    total = len(messages_by_tc)
-    passed = sum(1 for tc in messages_by_tc.values() if all(msg["status"] == "Pass" for msg in tc))
-    failed = total - passed
-    duration = end_ts - start_ts
-    generated_time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+<div style="display: flex; justify-content: flex-start; align-items: flex-start; gap: 40px; margin-top: 20px; padding-left: 80px;">
+    <div style="width: 280px;">
+        <p><strong>Generated:</strong> {generated_time}</p>
+        <p><strong>CAN Log File:</strong> {asc_filename}</p>
+        <p><strong>Total Test Cases:</strong> {total}</p>
+        <p class="pass"><strong>Passed:</strong> {passed}</p>
+        <p class="fail"><strong>Failed:</strong> {failed}</p>
+        <p><strong>Test Duration:</strong> {duration:.3f} seconds</p>
+        {f"<p><strong>Target ECU:</strong> {escape(target_ecu)}</p>" if target_ecu else ""}
+        {"".join(f"<p><strong>{escape(k)}:</strong> {escape(v)}</p>" for k, v in ecu_info_data.items()) if ecu_info_data else ""}
+    </div>
 
-    html = f"""<!DOCTYPE html>
-<html>
-<head><title>UDS Diagnostic Report</title>
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<style>
-  body {{ font-family: Arial; margin: 20px; }}
-  .pass {{ color: green; font-weight: bold; }}
-  .fail {{ color: red; font-weight: bold; }}
-  .wrapper {{
-    display: flex;
-    justify-content: center;
-    align-items: flex-start;
-    gap: 50px;
-    margin-top: 20px;
-  }}
-  .summary-block {{ text-align: left; min-width: 250px; }}
-  #chart-container {{ width: 300px; }}
-  table {{ border-collapse: collapse; width: 100%; margin-top: 10px; }}
-  th, td {{ border: 1px solid #ccc; padding: 8px; }}
-  th {{ background: #f0f0f0; }}
-  summary {{ font-weight: bold; cursor: pointer; }}
-</style>
-</head>
-<body>
-
-<h1 style="text-align: center;">UDS Diagnostic Report</h1>
-
-<div class="wrapper">
-  <div class="summary-block">
-    <p><strong>Generated:</strong> {generated_time}</p>
-    <p><strong>CAN Log File:</strong> {asc_filename}</p>
-    <p><strong>Total Test Cases:</strong> {total}</p>
-    <p class="pass"><strong>Passed:</strong> {passed}</p>
-    <p class="fail"><strong>Failed:</strong> {failed}</p>
-    <p><strong>Test Duration:</strong> {duration:.3f} seconds</p>
-    {f"<p><strong>Target ECU:</strong> {escape(target_ecu)}</p>" if target_ecu else ""}
-    {"".join(f"<p><strong>{escape(k)}:</strong> {escape(v)}</p>" for k,v in ecu_info_data.items()) if ecu_info_data else ""}
-  </div>
-
-  <div id="chart-container">
-    <canvas id="passFailChart" width="300" height="300"></canvas>
-  </div>
+    <div id="chart-container" style="width: 320px;">
+        <canvas id="passFailChart" width="300" height="300"></canvas>
+    </div>
 </div>
-
-<script>
-  const ctx = document.getElementById('passFailChart').getContext('2d');
-  new Chart(ctx, {{
-    type: 'pie',
-    data: {{
-      labels: ['Passed', 'Failed'],
-      datasets: [{{
-        data: [{passed}, {failed}],
-        backgroundColor: ['#4CAF50', '#F44336']
-      }}]
-    }},
-    options: {{
-      responsive: true,
-      plugins: {{
-        legend: {{ position: 'bottom' }},
-        title: {{ display: true, text: 'Test Case Results' }}
-      }}
-    }}
-  }});
-</script>
-
-<hr><br>
-"""
-
-    for tc_id, steps in messages_by_tc.items():
-        status = steps[0]['status']
-        status_class = 'pass' if status == 'Pass' else 'fail'
-        html += f"<details><summary>{tc_id} - <span class='{status_class}'>{status}</span></summary>\n"
-        html += """<table><tr><th>Step</th><th>Description</th><th>Timestamp</th><th>Type</th><th>Status</th><th>Failure Reason</th></tr>\n"""
-        step_count = 1
-        for msg in steps:
-            html += f"<tr><td>{step_count}</td><td>{escape(msg['desc'])}</td><td>{msg['timestamp']:.6f}</td><td>Request Sent</td><td></td><td>-</td></tr>\n"
-            step_count += 1
-            response = msg.get("response", {})
-            html += f"<tr><td>{step_count}</td><td></td><td>{response.get('timestamp', ''):.6f}</td><td>Response Received</td><td>{msg['status']}</td><td>{msg.get('failure_reason', '')}</td></tr>\n"
-            step_count += 1
-        html += "</table></details>\n"
-
-    html += "</body></html>"
-
-    with open(output_path, "w", encoding="utf-8") as f:
-        f.write(html)
-
-    print(f"✅ UDS HTML Report generated at:\n{output_path}\n")
