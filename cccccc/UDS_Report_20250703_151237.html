@@ -1,0 +1,733 @@
+<!DOCTYPE html>
+<html>
+<head><title>UDS Diagnostic Report</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+  body { font-family: Arial; margin: 20px; }
+  .pass { color: green; font-weight: bold; }
+  .fail { color: red; font-weight: bold; }
+  .wrapper {
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    gap: 50px;
+    margin-top: 20px;
+  }
+  .summary-block { text-align: left; min-width: 250px; }
+  #chart-container { width: 300px; }
+  table { border-collapse: collapse; width: 100%; margin-top: 10px; }
+  th, td { border: 1px solid #ccc; padding: 8px; }
+  th { background: #f0f0f0; }
+  summary { font-weight: bold; cursor: pointer; }
+</style>
+</head>
+<body>
+
+<h1 style="text-align: center;">UDS Diagnostic Report</h1>
+
+<div style="display: flex; justify-content: flex-start; align-items: flex-start; gap: 40px; margin-top: 20px; padding-left: 10px;">
+    <div style="width: 650px;">
+    
+        <p><strong>Target ECU:</strong> MKBD</p>
+        <p><strong>S/W Version:</strong> 01.01.00</p><p><strong>B-CAN Version:</strong> 25 04 01</p><p><strong>Manufacturing Date:</strong> 00 00 00 00</p><p><strong>ECU_Serial Number:</strong> 00 00 00 00 00 00 00 00 00 00</p><p><strong>H/W Version:</strong> 01.00</p>
+        
+        <hr style="width: 300px;border:1px solid #999; margin:25px 0;">
+        
+        <p><strong>Generated:</strong> 2025-07-03 15:12:37</p>
+        <p><strong>CAN Log File:</strong> CANLog_Testcase_20250703_151213.asc</p>
+        <p><strong>Total Test Cases:</strong> 132</p>
+        <p class="pass"><strong>Passed:</strong> 116</p>
+        <p class="fail"><strong>Failed:</strong> 16</p>
+        <p><strong>Test Duration:</strong> 18.677 seconds</p>
+        
+    </div>
+
+    <div id="chart-container" style="width: 320px; margin-left:70px;">
+        <canvas id="passFailChart" width="300" height="300"></canvas>
+    </div>
+</div>
+
+
+<script>
+  const ctx = document.getElementById('passFailChart').getContext('2d');
+  new Chart(ctx, {
+    type: 'pie',
+    data: {
+      labels: ['Passed', 'Failed'],
+      datasets: [{
+        data: [116, 16],
+        backgroundColor: ['#4CAF50', '#F44336']
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: {
+        legend: { position: 'bottom' },
+        title: { display: true, text: 'Test Case Results' }
+      }
+    }
+  });
+</script>
+
+<hr><br>
+<details><summary>ECU_INFO-1 - <span class='pass'>Pass</span></summary>
+<table><tr><th>Step</th><th>Description</th><th>Timestamp</th><th>Type</th><th>Status</th><th>Failure Reason</th></tr>
+<tr><td>1</td><td>S/W Version</td><td>0.000000</td><td>Request Sent</td><td></td><td>-</td></tr>
+<tr><td>2</td><td></td><td>0.016839</td><td>Response Received</td><td>Pass</td><td></td></tr>
+</table></details>
+<details><summary>ECU_INFO-2 - <span class='pass'>Pass</span></summary>
+<table><tr><th>Step</th><th>Description</th><th>Timestamp</th><th>Type</th><th>Status</th><th>Failure Reason</th></tr>
+<tr><td>1</td><td>B-CAN Version</td><td>0.096993</td><td>Request Sent</td><td></td><td>-</td></tr>
+<tr><td>2</td><td></td><td>0.116842</td><td>Response Received</td><td>Pass</td><td></td></tr>
+</table></details>
+<details><summary>ECU_INFO-3 - <span class='pass'>Pass</span></summary>
+<table><tr><th>Step</th><th>Description</th><th>Timestamp</th><th>Type</th><th>Status</th><th>Failure Reason</th></tr>
+<tr><td>1</td><td>Manufacturing Date</td><td>0.185143</td><td>Request Sent</td><td></td><td>-</td></tr>
+<tr><td>2</td><td></td><td>0.206966</td><td>Response Received</td><td>Pass</td><td></td></tr>
+</table></details>
+<details><summary>ECU_INFO-4 - <span class='pass'>Pass</span></summary>
+<table><tr><th>Step</th><th>Description</th><th>Timestamp</th><th>Type</th><th>Status</th><th>Failure Reason</th></tr>
+<tr><td>1</td><td>ECU_Serial Number</td><td>0.283051</td><td>Request Sent</td><td></td><td>-</td></tr>
+<tr><td>2</td><td></td><td>0.296845</td><td>Response Received</td><td>Pass</td><td></td></tr>
+</table></details>
+<details><summary>ECU_INFO-5 - <span class='pass'>Pass</span></summary>
+<table><tr><th>Step</th><th>Description</th><th>Timestamp</th><th>Type</th><th>Status</th><th>Failure Reason</th></tr>
+<tr><td>1</td><td>H/W Version</td><td>0.394224</td><td>Request Sent</td><td></td><td>-</td></tr>
+<tr><td>2</td><td></td><td>0.416905</td><td>Response Received</td><td>Pass</td><td></td></tr>
+</table></details>
+<details><summary>TC_ID-001 - <span class='pass'>Pass</span></summary>
+<table><tr><th>Step</th><th>Description</th><th>Timestamp</th><th>Type</th><th>Status</th><th>Failure Reason</th></tr>
+<tr><td>1</td><td>Start default session</td><td>0.552256</td><td>Request Sent</td><td></td><td>-</td></tr>
+<tr><td>2</td><td></td><td>0.566923</td><td>Response Received</td><td>Pass</td><td></td></tr>
+</table></details>
+<details><summary>TC_ID-003 - <span class='pass'>Pass</span></summary>
+<table><tr><th>Step</th><th>Description</th><th>Timestamp</th><th>Type</th><th>Status</th><th>Failure Reason</th></tr>
+<tr><td>1</td><td>Start Extended session</td><td>0.690723</td><td>Request Sent</td><td></td><td>-</td></tr>
+<tr><td>2</td><td></td><td>0.706965</td><td>Response Received</td><td>Pass</td><td></td></tr>
+</table></details>
+<details><summary>TC_ID-004 - <span class='pass'>Pass</span></summary>
+<table><tr><th>Step</th><th>Description</th><th>Timestamp</th><th>Type</th><th>Status</th><th>Failure Reason</th></tr>
+<tr><td>1</td><td>Sub function not supported(10 FF)</td><td>0.830926</td><td>Request Sent</td><td></td><td>-</td></tr>
+<tr><td>2</td><td></td><td>0.836823</td><td>Response Received</td><td>Pass</td><td></td></tr>
+</table></details>
+<details><summary>TC_ID-005 - <span class='pass'>Pass</span></summary>
+<table><tr><th>Step</th><th>Description</th><th>Timestamp</th><th>Type</th><th>Status</th><th>Failure Reason</th></tr>
+<tr><td>1</td><td>Incorrect message length(No sub function)(10)</td><td>0.964370</td><td>Request Sent</td><td></td><td>-</td></tr>
+<tr><td>2</td><td></td><td>0.976848</td><td>Response Received</td><td>Pass</td><td></td></tr>
+</table></details>
+<details><summary>TC_ID-007 - <span class='pass'>Pass</span></summary>
+<table><tr><th>Step</th><th>Description</th><th>Timestamp</th><th>Type</th><th>Status</th><th>Failure Reason</th></tr>
+<tr><td>1</td><td>Hard reset</td><td>1.048870</td><td>Request Sent</td><td></td><td>-</td></tr>
+<tr><td>2</td><td></td><td>1.056841</td><td>Response Received</td><td>Pass</td><td></td></tr>
+</table></details>
+<details><summary>TC_ID-009 - <span class='pass'>Pass</span></summary>
+<table><tr><th>Step</th><th>Description</th><th>Timestamp</th><th>Type</th><th>Status</th><th>Failure Reason</th></tr>
+<tr><td>1</td><td>Sub function not supported(out ofrange)(11 08)</td><td>3.162978</td><td>Request Sent</td><td></td><td>-</td></tr>
+<tr><td>2</td><td></td><td>3.173438</td><td>Response Received</td><td>Pass</td><td></td></tr>
+</table></details>
+<details><summary>TC_ID-010 - <span class='pass'>Pass</span></summary>
+<table><tr><th>Step</th><th>Description</th><th>Timestamp</th><th>Type</th><th>Status</th><th>Failure Reason</th></tr>
+<tr><td>1</td><td>Incorrect message length(No sub function)(11)</td><td>3.239320</td><td>Request Sent</td><td></td><td>-</td></tr>
+<tr><td>2</td><td></td><td>3.243468</td><td>Response Received</td><td>Pass</td><td></td></tr>
+</table></details>
+<details><summary>PC_ID-001 - <span class='pass'>Pass</span></summary>
+<table><tr><th>Step</th><th>Description</th><th>Timestamp</th><th>Type</th><th>Status</th><th>Failure Reason</th></tr>
+<tr><td>1</td><td>Start Extended session</td><td>3.366521</td><td>Request Sent</td><td></td><td>-</td></tr>
+<tr><td>2</td><td></td><td>3.383456</td><td>Response Received</td><td>Pass</td><td></td></tr>
+</table></details>
+<details><summary>TC_ID-014 - <span class='pass'>Pass</span></summary>
+<table><tr><th>Step</th><th>Description</th><th>Timestamp</th><th>Type</th><th>Status</th><th>Failure Reason</th></tr>
+<tr><td>1</td><td><b>PreCondition:</b> PC_ID-001<br><b>Testcase:</b>:EnableRxAndDisableTx Extended session(28 01)</td><td>3.537792</td><td>Request Sent</td><td></td><td>-</td></tr>
+<tr><td>2</td><td></td><td>3.553458</td><td>Response Received</td><td>Pass</td><td></td></tr>
+</table></details>
+<details><summary>TC_ID-015 - <span class='pass'>Pass</span></summary>
+<table><tr><th>Step</th><th>Description</th><th>Timestamp</th><th>Type</th><th>Status</th><th>Failure Reason</th></tr>
+<tr><td>1</td><td><b>PreCondition:</b> PC_ID-001<br><b>Testcase:</b>:DisableRxAndEnableTx Extended session(28 02)</td><td>3.569667</td><td>Request Sent</td><td></td><td>-</td></tr>
+<tr><td>2</td><td></td><td>3.583552</td><td>Response Received</td><td>Pass</td><td></td></tr>
+</table></details>
+<details><summary>TC_ID-016 - <span class='pass'>Pass</span></summary>
+<table><tr><th>Step</th><th>Description</th><th>Timestamp</th><th>Type</th><th>Status</th><th>Failure Reason</th></tr>
+<tr><td>1</td><td><b>PreCondition:</b> PC_ID-001<br><b>Testcase:</b>:DisableRxAndDisableTx Extended session(28 03)</td><td>3.611501</td><td>Request Sent</td><td></td><td>-</td></tr>
+<tr><td>2</td><td></td><td>3.633381</td><td>Response Received</td><td>Pass</td><td></td></tr>
+</table></details>
+<details><summary>PC_ID-002 - <span class='pass'>Pass</span></summary>
+<table><tr><th>Step</th><th>Description</th><th>Timestamp</th><th>Type</th><th>Status</th><th>Failure Reason</th></tr>
+<tr><td>1</td><td>Start Default session</td><td>3.760081</td><td>Request Sent</td><td></td><td>-</td></tr>
+<tr><td>2</td><td></td><td>3.783885</td><td>Response Received</td><td>Pass</td><td></td></tr>
+</table></details>
+<details><summary>TC_ID-021 - <span class='pass'>Pass</span></summary>
+<table><tr><th>Step</th><th>Description</th><th>Timestamp</th><th>Type</th><th>Status</th><th>Failure Reason</th></tr>
+<tr><td>1</td><td>incorrect message length(No sub function) with Default session(85)</td><td>3.807106</td><td>Request Sent</td><td></td><td>-</td></tr>
+<tr><td>2</td><td></td><td>3.814641</td><td>Response Received</td><td>Pass</td><td></td></tr>
+</table></details>
+<details><summary>TC_ID-022 - <span class='pass'>Pass</span></summary>
+<table><tr><th>Step</th><th>Description</th><th>Timestamp</th><th>Type</th><th>Status</th><th>Failure Reason</th></tr>
+<tr><td>1</td><td><b>PreCondition:</b> PC_ID-002<br><b>Testcase:</b>:DTC setting ON wrong Session(85 01)</td><td>3.881348</td><td>Request Sent</td><td></td><td>-</td></tr>
+<tr><td>2</td><td></td><td>3.893481</td><td>Response Received</td><td>Pass</td><td></td></tr>
+</table></details>
+<details><summary>TC_ID-023 - <span class='pass'>Pass</span></summary>
+<table><tr><th>Step</th><th>Description</th><th>Timestamp</th><th>Type</th><th>Status</th><th>Failure Reason</th></tr>
+<tr><td>1</td><td><b>PreCondition:</b> PC_ID-002<br><b>Testcase:</b>:DTC setting OFF wrong Session(85 02)</td><td>3.961138</td><td>Request Sent</td><td></td><td>-</td></tr>
+<tr><td>2</td><td></td><td>3.973636</td><td>Response Received</td><td>Pass</td><td></td></tr>
+</table></details>
+<details><summary>TC_ID-024 - <span class='pass'>Pass</span></summary>
+<table><tr><th>Step</th><th>Description</th><th>Timestamp</th><th>Type</th><th>Status</th><th>Failure Reason</th></tr>
+<tr><td>1</td><td><b>PreCondition:</b> PC_ID-002<br><b>Testcase:</b>:Service not supported in active session(Default)(85 01)</td><td>4.047689</td><td>Request Sent</td><td></td><td>-</td></tr>
+<tr><td>2</td><td></td><td>4.053440</td><td>Response Received</td><td>Pass</td><td></td></tr>
+</table></details>
+<details><summary>TC_ID-025 - <span class='pass'>Pass</span></summary>
+<table><tr><th>Step</th><th>Description</th><th>Timestamp</th><th>Type</th><th>Status</th><th>Failure Reason</th></tr>
+<tr><td>1</td><td><b>PreCondition:</b> PC_ID-002<br><b>Testcase:</b>:Invalid sub function(85 FF)</td><td>4.135307</td><td>Request Sent</td><td></td><td>-</td></tr>
+<tr><td>2</td><td></td><td>4.143506</td><td>Response Received</td><td>Pass</td><td></td></tr>
+</table></details>
+<details><summary>PC_ID-003 - <span class='pass'>Pass</span></summary>
+<table><tr><th>Step</th><th>Description</th><th>Timestamp</th><th>Type</th><th>Status</th><th>Failure Reason</th></tr>
+<tr><td>1</td><td>Start Extended session</td><td>4.267352</td><td>Request Sent</td><td></td><td>-</td></tr>
+<tr><td>2</td><td></td><td>4.283695</td><td>Response Received</td><td>Pass</td><td></td></tr>
+</table></details>
+<details><summary>TC_ID-027 - <span class='pass'>Pass</span></summary>
+<table><tr><th>Step</th><th>Description</th><th>Timestamp</th><th>Type</th><th>Status</th><th>Failure Reason</th></tr>
+<tr><td>1</td><td>Incorrect message length(No sub function) with Extended session(85)</td><td>4.356006</td><td>Request Sent</td><td></td><td>-</td></tr>
+<tr><td>2</td><td></td><td>4.363458</td><td>Response Received</td><td>Pass</td><td></td></tr>
+</table></details>
+<details><summary>TC_ID-028 - <span class='pass'>Pass</span></summary>
+<table><tr><th>Step</th><th>Description</th><th>Timestamp</th><th>Type</th><th>Status</th><th>Failure Reason</th></tr>
+<tr><td>1</td><td><b>PreCondition:</b> PC_ID-003<br><b>Testcase:</b>:DTC setting ON  Pre-condition extended(85 01)</td><td>4.432282</td><td>Request Sent</td><td></td><td>-</td></tr>
+<tr><td>2</td><td></td><td>4.443482</td><td>Response Received</td><td>Pass</td><td></td></tr>
+</table></details>
+<details><summary>TC_ID-029 - <span class='pass'>Pass</span></summary>
+<table><tr><th>Step</th><th>Description</th><th>Timestamp</th><th>Type</th><th>Status</th><th>Failure Reason</th></tr>
+<tr><td>1</td><td><b>PreCondition:</b> PC_ID-003<br><b>Testcase:</b>:DTC setting OFF Pre-condition extended(85 02)</td><td>4.523606</td><td>Request Sent</td><td></td><td>-</td></tr>
+<tr><td>2</td><td></td><td>4.533499</td><td>Response Received</td><td>Pass</td><td></td></tr>
+</table></details>
+<details><summary>TC_ID-030 - <span class='pass'>Pass</span></summary>
+<table><tr><th>Step</th><th>Description</th><th>Timestamp</th><th>Type</th><th>Status</th><th>Failure Reason</th></tr>
+<tr><td>1</td><td><b>PreCondition:</b> PC_ID-003<br><b>Testcase:</b>:Sub function not supported(not valid sub function)(85 08)</td><td>4.606089</td><td>Request Sent</td><td></td><td>-</td></tr>
+<tr><td>2</td><td></td><td>4.613667</td><td>Response Received</td><td>Pass</td><td></td></tr>
+</table></details>
+<details><summary>TC_ID-032 - <span class='pass'>Pass</span></summary>
+<table><tr><th>Step</th><th>Description</th><th>Timestamp</th><th>Type</th><th>Status</th><th>Failure Reason</th></tr>
+<tr><td>1</td><td><b>PreCondition:</b> PC_ID-003<br><b>Testcase:</b>: Invalid  sub function(85 0A)</td><td>4.697721</td><td>Request Sent</td><td></td><td>-</td></tr>
+<tr><td>2</td><td></td><td>4.703399</td><td>Response Received</td><td>Pass</td><td></td></tr>
+</table></details>
+<details><summary>TC_ID-034 - <span class='pass'>Pass</span></summary>
+<table><tr><th>Step</th><th>Description</th><th>Timestamp</th><th>Type</th><th>Status</th><th>Failure Reason</th></tr>
+<tr><td>1</td><td><b>PreCondition:</b> PC_ID-003<br><b>Testcase:</b>:Read DTC with Extended session(19 01)</td><td>4.774603</td><td>Request Sent</td><td></td><td>-</td></tr>
+<tr><td>2</td><td></td><td>4.784723</td><td>Response Received</td><td>Pass</td><td></td></tr>
+</table></details>
+<details><summary>TC_ID-035 - <span class='pass'>Pass</span></summary>
+<table><tr><th>Step</th><th>Description</th><th>Timestamp</th><th>Type</th><th>Status</th><th>Failure Reason</th></tr>
+<tr><td>1</td><td><b>PreCondition:</b> PC_ID-003<br><b>Testcase:</b>:Read DTC Extended session(19 02)</td><td>4.857738</td><td>Request Sent</td><td></td><td>-</td></tr>
+<tr><td>2</td><td></td><td>4.863452</td><td>Response Received</td><td>Pass</td><td></td></tr>
+</table></details>
+<details><summary>TC_ID-037 - <span class='pass'>Pass</span></summary>
+<table><tr><th>Step</th><th>Description</th><th>Timestamp</th><th>Type</th><th>Status</th><th>Failure Reason</th></tr>
+<tr><td>1</td><td><b>PreCondition:</b> PC_ID-003<br><b>Testcase:</b>:Subfunction not supported(No Mask)(19 0F)</td><td>4.940132</td><td>Request Sent</td><td></td><td>-</td></tr>
+<tr><td>2</td><td></td><td>4.953481</td><td>Response Received</td><td>Pass</td><td></td></tr>
+</table></details>
+<details><summary>TC_ID-038 - <span class='pass'>Pass</span></summary>
+<table><tr><th>Step</th><th>Description</th><th>Timestamp</th><th>Type</th><th>Status</th><th>Failure Reason</th></tr>
+<tr><td>1</td><td><b>PreCondition:</b> PC_ID-003<br><b>Testcase:</b>:Subfunction not supported(No Mask)(19 0E)</td><td>5.025618</td><td>Request Sent</td><td></td><td>-</td></tr>
+<tr><td>2</td><td></td><td>5.033535</td><td>Response Received</td><td>Pass</td><td></td></tr>
+</table></details>
+<details><summary>TC_ID-039 - <span class='pass'>Pass</span></summary>
+<table><tr><th>Step</th><th>Description</th><th>Timestamp</th><th>Type</th><th>Status</th><th>Failure Reason</th></tr>
+<tr><td>1</td><td><b>PreCondition:</b> PC_ID-003<br><b>Testcase:</b>:Subfunction not supported(properMask improper record with 0xFF)(19 FF)</td><td>5.111339</td><td>Request Sent</td><td></td><td>-</td></tr>
+<tr><td>2</td><td></td><td>5.123439</td><td>Response Received</td><td>Pass</td><td></td></tr>
+</table></details>
+<details><summary>TC_ID-043 - <span class='pass'>Pass</span></summary>
+<table><tr><th>Step</th><th>Description</th><th>Timestamp</th><th>Type</th><th>Status</th><th>Failure Reason</th></tr>
+<tr><td>1</td><td><b>PreCondition:</b> PC_ID-003<br><b>Testcase:</b>:Fault memory clear Extended session(14 FFFFFF)</td><td>5.190446</td><td>Request Sent</td><td></td><td>-</td></tr>
+<tr><td>2</td><td></td><td>5.203446</td><td>Response Received</td><td>Pass</td><td></td></tr>
+</table></details>
+<details><summary>TC_ID-044 - <span class='pass'>Pass</span></summary>
+<table><tr><th>Step</th><th>Description</th><th>Timestamp</th><th>Type</th><th>Status</th><th>Failure Reason</th></tr>
+<tr><td>1</td><td><b>PreCondition:</b> PC_ID-003<br><b>Testcase:</b>:Conditions not correct(invalid range)(14 FFEEEE)</td><td>5.274823</td><td>Request Sent</td><td></td><td>-</td></tr>
+<tr><td>2</td><td></td><td>5.283594</td><td>Response Received</td><td>Pass</td><td></td></tr>
+</table></details>
+<details><summary>TC_ID-045 - <span class='pass'>Pass</span></summary>
+<table><tr><th>Step</th><th>Description</th><th>Timestamp</th><th>Type</th><th>Status</th><th>Failure Reason</th></tr>
+<tr><td>1</td><td><b>PreCondition:</b> PC_ID-003<br><b>Testcase:</b>:Request out of range(Empty Group of DTC))(14)</td><td>5.361402</td><td>Request Sent</td><td></td><td>-</td></tr>
+<tr><td>2</td><td></td><td>5.373417</td><td>Response Received</td><td>Pass</td><td></td></tr>
+</table></details>
+<details><summary>PC_ID-004 - <span class='pass'>Pass</span></summary>
+<table><tr><th>Step</th><th>Description</th><th>Timestamp</th><th>Type</th><th>Status</th><th>Failure Reason</th></tr>
+<tr><td>1</td><td>Start default session</td><td>5.494509</td><td>Request Sent</td><td></td><td>-</td></tr>
+<tr><td>2</td><td></td><td>5.513513</td><td>Response Received</td><td>Pass</td><td></td></tr>
+</table></details>
+<details><summary>TC_ID-046 - <span class='pass'>Pass</span></summary>
+<table><tr><th>Step</th><th>Description</th><th>Timestamp</th><th>Type</th><th>Status</th><th>Failure Reason</th></tr>
+<tr><td>1</td><td><b>PreCondition:</b> PC_ID-004<br><b>Testcase:</b>:RX_SWIN_F1_EF_Read(Defaultsession)</td><td>5.595680</td><td>Request Sent</td><td></td><td>-</td></tr>
+<tr><td>2</td><td></td><td>5.613483</td><td>Response Received</td><td>Pass</td><td></td></tr>
+</table></details>
+<details><summary>TC_ID-047 - <span class='pass'>Pass</span></summary>
+<table><tr><th>Step</th><th>Description</th><th>Timestamp</th><th>Type</th><th>Status</th><th>Failure Reason</th></tr>
+<tr><td>1</td><td><b>PreCondition:</b> PC_ID-004<br><b>Testcase:</b>:B_CAN_Database_Version_F1_00_Read(Defaultsession)</td><td>5.770946</td><td>Request Sent</td><td></td><td>-</td></tr>
+<tr><td>2</td><td></td><td>5.793464</td><td>Response Received</td><td>Pass</td><td></td></tr>
+</table></details>
+<details><summary>TC_ID-048 - <span class='pass'>Pass</span></summary>
+<table><tr><th>Step</th><th>Description</th><th>Timestamp</th><th>Type</th><th>Status</th><th>Failure Reason</th></tr>
+<tr><td>1</td><td><b>PreCondition:</b> PC_ID-004<br><b>Testcase:</b>:Vehicle_Manufacturer_Spare_Part_Number_F1_87_Read(Defaultsession)</td><td>5.866090</td><td>Request Sent</td><td></td><td>-</td></tr>
+<tr><td>2</td><td></td><td>5.884132</td><td>Response Received</td><td>Pass</td><td></td></tr>
+</table></details>
+<details><summary>TC_ID-049 - <span class='pass'>Pass</span></summary>
+<table><tr><th>Step</th><th>Description</th><th>Timestamp</th><th>Type</th><th>Status</th><th>Failure Reason</th></tr>
+<tr><td>1</td><td><b>PreCondition:</b> PC_ID-004<br><b>Testcase:</b>:Manufacturing_F1_8B_Read(Defaultsession)</td><td>5.960562</td><td>Request Sent</td><td></td><td>-</td></tr>
+<tr><td>2</td><td></td><td>5.983693</td><td>Response Received</td><td>Pass</td><td></td></tr>
+</table></details>
+<details><summary>TC_ID-050 - <span class='pass'>Pass</span></summary>
+<table><tr><th>Step</th><th>Description</th><th>Timestamp</th><th>Type</th><th>Status</th><th>Failure Reason</th></tr>
+<tr><td>1</td><td><b>PreCondition:</b> PC_ID-004<br><b>Testcase:</b>:ECU_Serial_Number_F1_8C_Read(Defaultsession)</td><td>6.058406</td><td>Request Sent</td><td></td><td>-</td></tr>
+<tr><td>2</td><td></td><td>6.073551</td><td>Response Received</td><td>Pass</td><td></td></tr>
+</table></details>
+<details><summary>TC_ID-051 - <span class='pass'>Pass</span></summary>
+<table><tr><th>Step</th><th>Description</th><th>Timestamp</th><th>Type</th><th>Status</th><th>Failure Reason</th></tr>
+<tr><td>1</td><td><b>PreCondition:</b> PC_ID-004<br><b>Testcase:</b>:Vehicle_Manufacturer_ECU_HW_Number_F1_91_Read(Defaultsession)</td><td>6.167658</td><td>Request Sent</td><td></td><td>-</td></tr>
+<tr><td>2</td><td></td><td>6.183514</td><td>Response Received</td><td>Pass</td><td></td></tr>
+</table></details>
+<details><summary>TC_ID-052 - <span class='pass'>Pass</span></summary>
+<table><tr><th>Step</th><th>Description</th><th>Timestamp</th><th>Type</th><th>Status</th><th>Failure Reason</th></tr>
+<tr><td>1</td><td><b>PreCondition:</b> PC_ID-004<br><b>Testcase:</b>:HardwareVersionNumber_F1_93_Read(Defaultsession)</td><td>6.266522</td><td>Request Sent</td><td></td><td>-</td></tr>
+<tr><td>2</td><td></td><td>6.283510</td><td>Response Received</td><td>Pass</td><td></td></tr>
+</table></details>
+<details><summary>TC_ID-055 - <span class='pass'>Pass</span></summary>
+<table><tr><th>Step</th><th>Description</th><th>Timestamp</th><th>Type</th><th>Status</th><th>Failure Reason</th></tr>
+<tr><td>1</td><td><b>PreCondition:</b> PC_ID-004<br><b>Testcase:</b>:Software_Version_for_HKMC_Vehicle_Manufacture_F1_A0_Read(Defaultsession)</td><td>8.515285</td><td>Request Sent</td><td></td><td>-</td></tr>
+<tr><td>2</td><td></td><td>8.553534</td><td>Response Received</td><td>Pass</td><td></td></tr>
+</table></details>
+<details><summary>TC_ID-056 - <span class='pass'>Pass</span></summary>
+<table><tr><th>Step</th><th>Description</th><th>Timestamp</th><th>Type</th><th>Status</th><th>Failure Reason</th></tr>
+<tr><td>1</td><td><b>PreCondition:</b> PC_ID-004<br><b>Testcase:</b>:ECU_Supplier_Code_F1_A1_Read(Defaultsession)</td><td>8.689373</td><td>Request Sent</td><td></td><td>-</td></tr>
+<tr><td>2</td><td></td><td>8.703595</td><td>Response Received</td><td>Pass</td><td></td></tr>
+</table></details>
+<details><summary>TC_ID-057 - <span class='pass'>Pass</span></summary>
+<table><tr><th>Step</th><th>Description</th><th>Timestamp</th><th>Type</th><th>Status</th><th>Failure Reason</th></tr>
+<tr><td>1</td><td><b>PreCondition:</b> PC_ID-004<br><b>Testcase:</b>:ECU_Software_UNIT_number_F1_B0_Read(Defaultsession)</td><td>8.776601</td><td>Request Sent</td><td></td><td>-</td></tr>
+<tr><td>2</td><td></td><td>8.793559</td><td>Response Received</td><td>Pass</td><td></td></tr>
+</table></details>
+<details><summary>TC_ID-058 - <span class='pass'>Pass</span></summary>
+<table><tr><th>Step</th><th>Description</th><th>Timestamp</th><th>Type</th><th>Status</th><th>Failure Reason</th></tr>
+<tr><td>1</td><td><b>PreCondition:</b> PC_ID-004<br><b>Testcase:</b>:ECU_Software_UNIT1_Version_F1_B1_Read(Defaultsession)</td><td>8.867882</td><td>Request Sent</td><td></td><td>-</td></tr>
+<tr><td>2</td><td></td><td>8.883591</td><td>Response Received</td><td>Pass</td><td></td></tr>
+</table></details>
+<details><summary>TC_ID-059 - <span class='pass'>Pass</span></summary>
+<table><tr><th>Step</th><th>Description</th><th>Timestamp</th><th>Type</th><th>Status</th><th>Failure Reason</th></tr>
+<tr><td>1</td><td><b>PreCondition:</b> PC_ID-004<br><b>Testcase:</b>:S_W_Version_Dataidentifier_F1_DD_Read(Defaultsession)</td><td>8.968834</td><td>Request Sent</td><td></td><td>-</td></tr>
+<tr><td>2</td><td></td><td>8.983611</td><td>Response Received</td><td>Pass</td><td></td></tr>
+</table></details>
+<details><summary>TC_ID-060 - <span class='pass'>Pass</span></summary>
+<table><tr><th>Step</th><th>Description</th><th>Timestamp</th><th>Type</th><th>Status</th><th>Failure Reason</th></tr>
+<tr><td>1</td><td><b>PreCondition:</b> PC_ID-004<br><b>Testcase:</b>:SystemNameOrEngineTypeDataIdentifier_Read(Defaultsession)</td><td>9.074463</td><td>Request Sent</td><td></td><td>-</td></tr>
+<tr><td>2</td><td></td><td>9.093589</td><td>Response Received</td><td>Pass</td><td></td></tr>
+</table></details>
+<details><summary>PC_ID-005 - <span class='pass'>Pass</span></summary>
+<table><tr><th>Step</th><th>Description</th><th>Timestamp</th><th>Type</th><th>Status</th><th>Failure Reason</th></tr>
+<tr><td>1</td><td>Start Extended session</td><td>9.216228</td><td>Request Sent</td><td></td><td>-</td></tr>
+<tr><td>2</td><td></td><td>9.233638</td><td>Response Received</td><td>Pass</td><td></td></tr>
+</table></details>
+<details><summary>TC_ID-061 - <span class='pass'>Pass</span></summary>
+<table><tr><th>Step</th><th>Description</th><th>Timestamp</th><th>Type</th><th>Status</th><th>Failure Reason</th></tr>
+<tr><td>1</td><td><b>PreCondition:</b> PC_ID-005<br><b>Testcase:</b>:RX_SWIN_F1_EF_Read(Extended session)</td><td>9.306549</td><td>Request Sent</td><td></td><td>-</td></tr>
+<tr><td>2</td><td></td><td>9.323582</td><td>Response Received</td><td>Pass</td><td></td></tr>
+</table></details>
+<details><summary>TC_ID-062 - <span class='pass'>Pass</span></summary>
+<table><tr><th>Step</th><th>Description</th><th>Timestamp</th><th>Type</th><th>Status</th><th>Failure Reason</th></tr>
+<tr><td>1</td><td><b>PreCondition:</b> PC_ID-005<br><b>Testcase:</b>:B_CAN_Database_Version_F1_00_Read(Extendedsession)</td><td>9.480820</td><td>Request Sent</td><td></td><td>-</td></tr>
+<tr><td>2</td><td></td><td>9.503596</td><td>Response Received</td><td>Pass</td><td></td></tr>
+</table></details>
+<details><summary>TC_ID-063 - <span class='pass'>Pass</span></summary>
+<table><tr><th>Step</th><th>Description</th><th>Timestamp</th><th>Type</th><th>Status</th><th>Failure Reason</th></tr>
+<tr><td>1</td><td><b>PreCondition:</b> PC_ID-005<br><b>Testcase:</b>:Vehicle_Manufacturer_Spare_Part_Number_F1_87_Read(Extendedsession)</td><td>9.589713</td><td>Request Sent</td><td></td><td>-</td></tr>
+<tr><td>2</td><td></td><td>9.603503</td><td>Response Received</td><td>Pass</td><td></td></tr>
+</table></details>
+<details><summary>TC_ID-064 - <span class='pass'>Pass</span></summary>
+<table><tr><th>Step</th><th>Description</th><th>Timestamp</th><th>Type</th><th>Status</th><th>Failure Reason</th></tr>
+<tr><td>1</td><td><b>PreCondition:</b> PC_ID-005<br><b>Testcase:</b>:Manufacturing_F1_8B_Read(Extendedsession)</td><td>9.687616</td><td>Request Sent</td><td></td><td>-</td></tr>
+<tr><td>2</td><td></td><td>9.703611</td><td>Response Received</td><td>Pass</td><td></td></tr>
+</table></details>
+<details><summary>TC_ID-065 - <span class='pass'>Pass</span></summary>
+<table><tr><th>Step</th><th>Description</th><th>Timestamp</th><th>Type</th><th>Status</th><th>Failure Reason</th></tr>
+<tr><td>1</td><td><b>PreCondition:</b> PC_ID-005<br><b>Testcase:</b>:ECU_Serial_Number_F1_8C_Read(Extendedsession)</td><td>9.769437</td><td>Request Sent</td><td></td><td>-</td></tr>
+<tr><td>2</td><td></td><td>9.784831</td><td>Response Received</td><td>Pass</td><td></td></tr>
+</table></details>
+<details><summary>TC_ID-066 - <span class='pass'>Pass</span></summary>
+<table><tr><th>Step</th><th>Description</th><th>Timestamp</th><th>Type</th><th>Status</th><th>Failure Reason</th></tr>
+<tr><td>1</td><td><b>PreCondition:</b> PC_ID-005<br><b>Testcase:</b>:Vehicle_Manufacturer_ECU_HW_Number_F1_91_Read(Extendedsession)</td><td>9.869483</td><td>Request Sent</td><td></td><td>-</td></tr>
+<tr><td>2</td><td></td><td>9.883636</td><td>Response Received</td><td>Pass</td><td></td></tr>
+</table></details>
+<details><summary>TC_ID-067 - <span class='pass'>Pass</span></summary>
+<table><tr><th>Step</th><th>Description</th><th>Timestamp</th><th>Type</th><th>Status</th><th>Failure Reason</th></tr>
+<tr><td>1</td><td><b>PreCondition:</b> PC_ID-005<br><b>Testcase:</b>:HardwareVersionNumber_F1_93_Read(Extendedsession)</td><td>9.971479</td><td>Request Sent</td><td></td><td>-</td></tr>
+<tr><td>2</td><td></td><td>9.993647</td><td>Response Received</td><td>Pass</td><td></td></tr>
+</table></details>
+<details><summary>TC_ID-068 - <span class='pass'>Pass</span></summary>
+<table><tr><th>Step</th><th>Description</th><th>Timestamp</th><th>Type</th><th>Status</th><th>Failure Reason</th></tr>
+<tr><td>1</td><td><b>PreCondition:</b> PC_ID-005<br><b>Testcase:</b>:ECUSoftwareUnit1IVDDataIdentifier_F1_C1_Read(Extendedsession)</td><td>10.078378</td><td>Request Sent</td><td></td><td>-</td></tr>
+<tr><td>2</td><td></td><td>10.093712</td><td>Response Received</td><td>Pass</td><td></td></tr>
+</table></details>
+<details><summary>TC_ID-069 - <span class='pass'>Pass</span></summary>
+<table><tr><th>Step</th><th>Description</th><th>Timestamp</th><th>Type</th><th>Status</th><th>Failure Reason</th></tr>
+<tr><td>1</td><td><b>PreCondition:</b> PC_ID-005<br><b>Testcase:</b>:SystemSupplierECUSoftwareVersionNumbe_DataIdentifier_F1_95_Read(Extendedsession)</td><td>10.244052</td><td>Request Sent</td><td></td><td>-</td></tr>
+<tr><td>2</td><td></td><td>10.264099</td><td>Response Received</td><td>Pass</td><td></td></tr>
+</table></details>
+<details><summary>TC_ID-070 - <span class='pass'>Pass</span></summary>
+<table><tr><th>Step</th><th>Description</th><th>Timestamp</th><th>Type</th><th>Status</th><th>Failure Reason</th></tr>
+<tr><td>1</td><td><b>PreCondition:</b> PC_ID-005<br><b>Testcase:</b>:Software_Version_for_HKMC_Vehicle_Manufacture_F1_A0_Read(Extendedsession)</td><td>10.345594</td><td>Request Sent</td><td></td><td>-</td></tr>
+<tr><td>2</td><td></td><td>10.363723</td><td>Response Received</td><td>Pass</td><td></td></tr>
+</table></details>
+<details><summary>TC_ID-071 - <span class='pass'>Pass</span></summary>
+<table><tr><th>Step</th><th>Description</th><th>Timestamp</th><th>Type</th><th>Status</th><th>Failure Reason</th></tr>
+<tr><td>1</td><td><b>PreCondition:</b> PC_ID-005<br><b>Testcase:</b>:ECU_Supplier_Code_F1_A1_Read(Extendedsession)</td><td>10.444843</td><td>Request Sent</td><td></td><td>-</td></tr>
+<tr><td>2</td><td></td><td>10.463748</td><td>Response Received</td><td>Pass</td><td></td></tr>
+</table></details>
+<details><summary>TC_ID-072 - <span class='pass'>Pass</span></summary>
+<table><tr><th>Step</th><th>Description</th><th>Timestamp</th><th>Type</th><th>Status</th><th>Failure Reason</th></tr>
+<tr><td>1</td><td><b>PreCondition:</b> PC_ID-005<br><b>Testcase:</b>:ECU_Software_UNIT_number_F1_B0_Read(Extendedsession)</td><td>10.531038</td><td>Request Sent</td><td></td><td>-</td></tr>
+<tr><td>2</td><td></td><td>10.553602</td><td>Response Received</td><td>Pass</td><td></td></tr>
+</table></details>
+<details><summary>TC_ID-073 - <span class='pass'>Pass</span></summary>
+<table><tr><th>Step</th><th>Description</th><th>Timestamp</th><th>Type</th><th>Status</th><th>Failure Reason</th></tr>
+<tr><td>1</td><td><b>PreCondition:</b> PC_ID-005<br><b>Testcase:</b>:ECU_Software_UNIT1_Version_F1_B1_Read(Extendedsession)</td><td>10.633113</td><td>Request Sent</td><td></td><td>-</td></tr>
+<tr><td>2</td><td></td><td>10.653741</td><td>Response Received</td><td>Pass</td><td></td></tr>
+</table></details>
+<details><summary>TC_ID-074 - <span class='pass'>Pass</span></summary>
+<table><tr><th>Step</th><th>Description</th><th>Timestamp</th><th>Type</th><th>Status</th><th>Failure Reason</th></tr>
+<tr><td>1</td><td><b>PreCondition:</b> PC_ID-005<br><b>Testcase:</b>:S_W_Version_Dataidentifier_F1_DD_Read(Extendedsession)</td><td>10.738168</td><td>Request Sent</td><td></td><td>-</td></tr>
+<tr><td>2</td><td></td><td>10.753693</td><td>Response Received</td><td>Pass</td><td></td></tr>
+</table></details>
+<details><summary>TC_ID-075 - <span class='pass'>Pass</span></summary>
+<table><tr><th>Step</th><th>Description</th><th>Timestamp</th><th>Type</th><th>Status</th><th>Failure Reason</th></tr>
+<tr><td>1</td><td><b>PreCondition:</b> PC_ID-005<br><b>Testcase:</b>:SystemNameOrEngineTypeDataIdentifier_Read(Extendedsession)</td><td>10.840080</td><td>Request Sent</td><td></td><td>-</td></tr>
+<tr><td>2</td><td></td><td>10.863599</td><td>Response Received</td><td>Pass</td><td></td></tr>
+</table></details>
+<details><summary>TC_ID-076 - <span class='pass'>Pass</span></summary>
+<table><tr><th>Step</th><th>Description</th><th>Timestamp</th><th>Type</th><th>Status</th><th>Failure Reason</th></tr>
+<tr><td>1</td><td>Request out of range(invalid identifier))(22 F1FF)</td><td>10.936609</td><td>Request Sent</td><td></td><td>-</td></tr>
+<tr><td>2</td><td></td><td>10.953635</td><td>Response Received</td><td>Pass</td><td></td></tr>
+</table></details>
+<details><summary>TC_ID-080 - <span class='pass'>Pass</span></summary>
+<table><tr><th>Step</th><th>Description</th><th>Timestamp</th><th>Type</th><th>Status</th><th>Failure Reason</th></tr>
+<tr><td>1</td><td>Incorrect message length(22)</td><td>11.026376</td><td>Request Sent</td><td></td><td>-</td></tr>
+<tr><td>2</td><td></td><td>11.033577</td><td>Response Received</td><td>Pass</td><td></td></tr>
+</table></details>
+<details><summary>PC_ID-006 - <span class='pass'>Pass</span></summary>
+<table><tr><th>Step</th><th>Description</th><th>Timestamp</th><th>Type</th><th>Status</th><th>Failure Reason</th></tr>
+<tr><td>1</td><td>Start default session</td><td>11.148731</td><td>Request Sent</td><td></td><td>-</td></tr>
+<tr><td>2</td><td></td><td>11.163671</td><td>Response Received</td><td>Pass</td><td></td></tr>
+</table></details>
+<details><summary>TC_ID-081 - <span class='pass'>Pass</span></summary>
+<table><tr><th>Step</th><th>Description</th><th>Timestamp</th><th>Type</th><th>Status</th><th>Failure Reason</th></tr>
+<tr><td>1</td><td><b>PreCondition:</b> PC_ID-006<br><b>Testcase:</b>:Tester present(3E 00)</td><td>11.239788</td><td>Request Sent</td><td></td><td>-</td></tr>
+<tr><td>2</td><td></td><td>11.243653</td><td>Response Received</td><td>Pass</td><td></td></tr>
+</table></details>
+<details><summary>TC_ID-082 - <span class='pass'>Pass</span></summary>
+<table><tr><th>Step</th><th>Description</th><th>Timestamp</th><th>Type</th><th>Status</th><th>Failure Reason</th></tr>
+<tr><td>1</td><td><b>PreCondition:</b> PC_ID-006<br><b>Testcase:</b>:Sub function not supported(with wrong sub function)(3E FF)</td><td>11.322424</td><td>Request Sent</td><td></td><td>-</td></tr>
+<tr><td>2</td><td></td><td>11.333665</td><td>Response Received</td><td>Pass</td><td></td></tr>
+</table></details>
+<details><summary>PC_ID-007 - <span class='pass'>Pass</span></summary>
+<table><tr><th>Step</th><th>Description</th><th>Timestamp</th><th>Type</th><th>Status</th><th>Failure Reason</th></tr>
+<tr><td>1</td><td>Start Extended session</td><td>11.448969</td><td>Request Sent</td><td></td><td>-</td></tr>
+<tr><td>2</td><td></td><td>11.463665</td><td>Response Received</td><td>Pass</td><td></td></tr>
+</table></details>
+<details><summary>TC_ID-083 - <span class='pass'>Pass</span></summary>
+<table><tr><th>Step</th><th>Description</th><th>Timestamp</th><th>Type</th><th>Status</th><th>Failure Reason</th></tr>
+<tr><td>1</td><td><b>PreCondition:</b> PC_ID-007  Tester present(3E 00)</td><td>11.530638</td><td>Request Sent</td><td></td><td>-</td></tr>
+<tr><td>2</td><td></td><td>11.543646</td><td>Response Received</td><td>Pass</td><td></td></tr>
+</table></details>
+<details><summary>TC_ID-084 - <span class='pass'>Pass</span></summary>
+<table><tr><th>Step</th><th>Description</th><th>Timestamp</th><th>Type</th><th>Status</th><th>Failure Reason</th></tr>
+<tr><td>1</td><td><b>PreCondition:</b> PC_ID-007  Sub function not supported(with wrong sub function)(3E FF)</td><td>11.617204</td><td>Request Sent</td><td></td><td>-</td></tr>
+<tr><td>2</td><td></td><td>11.624115</td><td>Response Received</td><td>Pass</td><td></td></tr>
+</table></details>
+<details><summary>PC_ID-009 - <span class='pass'>Pass</span></summary>
+<table><tr><th>Step</th><th>Description</th><th>Timestamp</th><th>Type</th><th>Status</th><th>Failure Reason</th></tr>
+<tr><td>1</td><td>Start Extended session</td><td>11.745039</td><td>Request Sent</td><td></td><td>-</td></tr>
+<tr><td>2</td><td></td><td>11.763728</td><td>Response Received</td><td>Pass</td><td></td></tr>
+</table></details>
+<details><summary>PC_ID-010 - <span class='pass'>Pass</span></summary>
+<table><tr><th>Step</th><th>Description</th><th>Timestamp</th><th>Type</th><th>Status</th><th>Failure Reason</th></tr>
+<tr><td>1</td><td>RequestSeed_ASK_Request(27 11)</td><td>11.830435</td><td>Request Sent</td><td></td><td>-</td></tr>
+<tr><td>2</td><td></td><td>11.853695</td><td>Response Received</td><td>Pass</td><td></td></tr>
+</table></details>
+<details><summary>PC_ID-011 - <span class='pass'>Pass</span></summary>
+<table><tr><th>Step</th><th>Description</th><th>Timestamp</th><th>Type</th><th>Status</th><th>Failure Reason</th></tr>
+<tr><td>1</td><td>SendKey_ASK_Send(27 12)</td><td>12.591065</td><td>Request Sent</td><td></td><td>-</td></tr>
+<tr><td>2</td><td></td><td>12.623614</td><td>Response Received</td><td>Pass</td><td></td></tr>
+</table></details>
+<details><summary>TC_ID-086 - <span class='pass'>Pass</span></summary>
+<table><tr><th>Step</th><th>Description</th><th>Timestamp</th><th>Type</th><th>Status</th><th>Failure Reason</th></tr>
+<tr><td>1</td><td><b>PreCondition:</b> PC_ID-009 PC_ID-010 PC_ID-011<br><b>Testcase:</b>:ECU_Supplier_Code_F1_A1_Write</td><td>12.693106</td><td>Request Sent</td><td></td><td>-</td></tr>
+<tr><td>2</td><td></td><td>12.743688</td><td>Response Received</td><td>Pass</td><td></td></tr>
+</table></details>
+<details><summary>TC_ID-087 - <span class='pass'>Pass</span></summary>
+<table><tr><th>Step</th><th>Description</th><th>Timestamp</th><th>Type</th><th>Status</th><th>Failure Reason</th></tr>
+<tr><td>1</td><td><b>PreCondition:</b> PC_ID-009 PC_ID-010 PC_ID-011<br><b>Testcase:</b>:Manufacturing_F1_8B_Write</td><td>12.762538</td><td>Request Sent</td><td></td><td>-</td></tr>
+<tr><td>2</td><td></td><td>12.813634</td><td>Response Received</td><td>Pass</td><td></td></tr>
+</table></details>
+<details><summary>TC_ID-088 - <span class='fail'>Fail</span></summary>
+<table><tr><th>Step</th><th>Description</th><th>Timestamp</th><th>Type</th><th>Status</th><th>Failure Reason</th></tr>
+<tr><td>1</td><td><b>PreCondition:</b> PC_ID-009 PC_ID-010 PC_ID-011<br><b>Testcase:</b>:ECU_Serial_Number_F1_8C_Write(32 Bytes)</td><td>12.832067</td><td>Request Sent</td><td></td><td>-</td></tr>
+<tr><td>2</td><td></td><td>12.883718</td><td>Response Received</td><td>Fail</td><td>incorrectMessageLengthOrInvalidFormat</td></tr>
+</table></details>
+<details><summary>TC_ID-089 - <span class='pass'>Pass</span></summary>
+<table><tr><th>Step</th><th>Description</th><th>Timestamp</th><th>Type</th><th>Status</th><th>Failure Reason</th></tr>
+<tr><td>1</td><td><b>PreCondition:</b> PC_ID-009 PC_ID-010 PC_ID-011<br><b>Testcase:</b>:ECU_Serial_Number_F1_8C_Write(10 Bytes)</td><td>12.955270</td><td>Request Sent</td><td></td><td>-</td></tr>
+<tr><td>2</td><td></td><td>13.013768</td><td>Response Received</td><td>Pass</td><td></td></tr>
+</table></details>
+<details><summary>TC_ID-090 - <span class='pass'>Pass</span></summary>
+<table><tr><th>Step</th><th>Description</th><th>Timestamp</th><th>Type</th><th>Status</th><th>Failure Reason</th></tr>
+<tr><td>1</td><td><b>PreCondition:</b> PC_ID-009 PC_ID-010 PC_ID-011<br><b>Testcase:</b>:Vehicle_Manufacturer_Spare_Part_Number_F1_87_Write</td><td>13.044890</td><td>Request Sent</td><td></td><td>-</td></tr>
+<tr><td>2</td><td></td><td>13.113647</td><td>Response Received</td><td>Pass</td><td></td></tr>
+</table></details>
+<details><summary>TC_ID-091 - <span class='fail'>Fail</span></summary>
+<table><tr><th>Step</th><th>Description</th><th>Timestamp</th><th>Type</th><th>Status</th><th>Failure Reason</th></tr>
+<tr><td>1</td><td><b>PreCondition:</b> PC_ID-009 PC_ID-010 PC_ID-011<br><b>Testcase:</b>:Vehicle_Manufacturer_ECU_HW_Number_F1_91_Write</td><td>13.135385</td><td>Request Sent</td><td></td><td>-</td></tr>
+<tr><td>2</td><td></td><td>13.164279</td><td>Response Received</td><td>Fail</td><td>requestOutOfRange</td></tr>
+</table></details>
+<details><summary>TC_ID-092 - <span class='fail'>Fail</span></summary>
+<table><tr><th>Step</th><th>Description</th><th>Timestamp</th><th>Type</th><th>Status</th><th>Failure Reason</th></tr>
+<tr><td>1</td><td><b>PreCondition:</b> PC_ID-009 PC_ID-010 PC_ID-011<br><b>Testcase:</b>:HardwareVersionNumber_F1_93_Write</td><td>13.241780</td><td>Request Sent</td><td></td><td>-</td></tr>
+<tr><td>2</td><td></td><td>13.273760</td><td>Response Received</td><td>Fail</td><td>requestOutOfRange</td></tr>
+</table></details>
+<details><summary>TC_ID-093 - <span class='fail'>Fail</span></summary>
+<table><tr><th>Step</th><th>Description</th><th>Timestamp</th><th>Type</th><th>Status</th><th>Failure Reason</th></tr>
+<tr><td>1</td><td><b>PreCondition:</b> PC_ID-009 PC_ID-010 PC_ID-011<br><b>Testcase:</b>:ECUSoftwareUnit1IVDDataIdentifier_F1_C1_Write</td><td>13.350130</td><td>Request Sent</td><td></td><td>-</td></tr>
+<tr><td>2</td><td></td><td>13.403683</td><td>Response Received</td><td>Fail</td><td>requestOutOfRange</td></tr>
+</table></details>
+<details><summary>TC_ID-094 - <span class='fail'>Fail</span></summary>
+<table><tr><th>Step</th><th>Description</th><th>Timestamp</th><th>Type</th><th>Status</th><th>Failure Reason</th></tr>
+<tr><td>1</td><td><b>PreCondition:</b> PC_ID-009 PC_ID-010 PC_ID-011<br><b>Testcase:</b>:SystemSupplierECUSoftwareVersionNumbe_DataIdentifier_F1_95_Write</td><td>13.471071</td><td>Request Sent</td><td></td><td>-</td></tr>
+<tr><td>2</td><td></td><td>13.503668</td><td>Response Received</td><td>Fail</td><td>requestOutOfRange</td></tr>
+</table></details>
+<details><summary>TC_ID-095 - <span class='fail'>Fail</span></summary>
+<table><tr><th>Step</th><th>Description</th><th>Timestamp</th><th>Type</th><th>Status</th><th>Failure Reason</th></tr>
+<tr><td>1</td><td><b>PreCondition:</b> PC_ID-009 PC_ID-010 PC_ID-011<br><b>Testcase:</b>:SystemNameOrEngineTypeDataIdentifier_Write</td><td>13.572534</td><td>Request Sent</td><td></td><td>-</td></tr>
+<tr><td>2</td><td></td><td>13.603751</td><td>Response Received</td><td>Fail</td><td>requestOutOfRange</td></tr>
+</table></details>
+<details><summary>TC_ID-096 - <span class='pass'>Pass</span></summary>
+<table><tr><th>Step</th><th>Description</th><th>Timestamp</th><th>Type</th><th>Status</th><th>Failure Reason</th></tr>
+<tr><td>1</td><td><b>PreCondition:</b> PC_ID-009 PC_ID-010 PC_ID-011<br><b>Testcase:</b>:ECU_Supplier_Code_F1_A1_Write(invalid length given less than Expeccted)</td><td>13.673205</td><td>Request Sent</td><td></td><td>-</td></tr>
+<tr><td>2</td><td></td><td>13.703690</td><td>Response Received</td><td>Pass</td><td></td></tr>
+</table></details>
+<details><summary>TC_ID-097 - <span class='pass'>Pass</span></summary>
+<table><tr><th>Step</th><th>Description</th><th>Timestamp</th><th>Type</th><th>Status</th><th>Failure Reason</th></tr>
+<tr><td>1</td><td><b>PreCondition:</b> PC_ID-009 PC_ID-010 PC_ID-011<br><b>Testcase:</b>:Manufacturing_F1_8B_Write(invalid length given less than Expeccted)</td><td>13.779618</td><td>Request Sent</td><td></td><td>-</td></tr>
+<tr><td>2</td><td></td><td>13.814038</td><td>Response Received</td><td>Pass</td><td></td></tr>
+</table></details>
+<details><summary>TC_ID-098 - <span class='pass'>Pass</span></summary>
+<table><tr><th>Step</th><th>Description</th><th>Timestamp</th><th>Type</th><th>Status</th><th>Failure Reason</th></tr>
+<tr><td>1</td><td><b>PreCondition:</b> PC_ID-009 PC_ID-010 PC_ID-011<br><b>Testcase:</b>:ECU_Serial_Number_F1_8C_Write(invalid length given less than Expeccted)</td><td>13.892791</td><td>Request Sent</td><td></td><td>-</td></tr>
+<tr><td>2</td><td></td><td>13.923707</td><td>Response Received</td><td>Pass</td><td></td></tr>
+</table></details>
+<details><summary>TC_ID-099 - <span class='pass'>Pass</span></summary>
+<table><tr><th>Step</th><th>Description</th><th>Timestamp</th><th>Type</th><th>Status</th><th>Failure Reason</th></tr>
+<tr><td>1</td><td><b>PreCondition:</b> PC_ID-009 PC_ID-010 PC_ID-011<br><b>Testcase:</b>:Vehicle_Manufacturer_Spare_Part_Number_F1_87_Write(invalid length given less than Expeccted)</td><td>13.997132</td><td>Request Sent</td><td></td><td>-</td></tr>
+<tr><td>2</td><td></td><td>14.033816</td><td>Response Received</td><td>Pass</td><td></td></tr>
+</table></details>
+<details><summary>TC_ID-100 - <span class='fail'>Fail</span></summary>
+<table><tr><th>Step</th><th>Description</th><th>Timestamp</th><th>Type</th><th>Status</th><th>Failure Reason</th></tr>
+<tr><td>1</td><td><b>PreCondition:</b> PC_ID-009 PC_ID-010 PC_ID-011<br><b>Testcase:</b>:Vehicle_Manufacturer_ECU_HW_Number_F1_91_Write(invalid length given less than Expeccted)</td><td>14.115069</td><td>Request Sent</td><td></td><td>-</td></tr>
+<tr><td>2</td><td></td><td>14.134222</td><td>Response Received</td><td>Fail</td><td>requestOutOfRange</td></tr>
+</table></details>
+<details><summary>TC_ID-101 - <span class='fail'>Fail</span></summary>
+<table><tr><th>Step</th><th>Description</th><th>Timestamp</th><th>Type</th><th>Status</th><th>Failure Reason</th></tr>
+<tr><td>1</td><td><b>PreCondition:</b> PC_ID-009 PC_ID-010 PC_ID-011<br><b>Testcase:</b>:HardwareVersionNumber_F1_93_Write(invalid length given less than Expeccted)</td><td>14.208538</td><td>Request Sent</td><td></td><td>-</td></tr>
+<tr><td>2</td><td></td><td>14.223655</td><td>Response Received</td><td>Fail</td><td>requestOutOfRange</td></tr>
+</table></details>
+<details><summary>TC_ID-102 - <span class='fail'>Fail</span></summary>
+<table><tr><th>Step</th><th>Description</th><th>Timestamp</th><th>Type</th><th>Status</th><th>Failure Reason</th></tr>
+<tr><td>1</td><td><b>PreCondition:</b> PC_ID-009 PC_ID-010 PC_ID-011<br><b>Testcase:</b>:ECUSoftwareUnit1IVDDataIdentifier_F1_C1_Write(invalid length given less than Expeccted)</td><td>14.303630</td><td>Request Sent</td><td></td><td>-</td></tr>
+<tr><td>2</td><td></td><td>14.353783</td><td>Response Received</td><td>Fail</td><td>requestOutOfRange</td></tr>
+</table></details>
+<details><summary>TC_ID-103 - <span class='fail'>Fail</span></summary>
+<table><tr><th>Step</th><th>Description</th><th>Timestamp</th><th>Type</th><th>Status</th><th>Failure Reason</th></tr>
+<tr><td>1</td><td><b>PreCondition:</b> PC_ID-009 PC_ID-010 PC_ID-011<br><b>Testcase:</b>:SystemSupplierECUSoftwareVersionNumbe_DataIdentifier_F1_95_Write(invalid length given less than Expeccted)</td><td>14.428227</td><td>Request Sent</td><td></td><td>-</td></tr>
+<tr><td>2</td><td></td><td>14.443717</td><td>Response Received</td><td>Fail</td><td>requestOutOfRange</td></tr>
+</table></details>
+<details><summary>TC_ID-104 - <span class='fail'>Fail</span></summary>
+<table><tr><th>Step</th><th>Description</th><th>Timestamp</th><th>Type</th><th>Status</th><th>Failure Reason</th></tr>
+<tr><td>1</td><td><b>PreCondition:</b> PC_ID-009 PC_ID-010 PC_ID-011<br><b>Testcase:</b>:SystemNameOrEngineTypeDataIdentifier_Write(invalid length given less than Expeccted)</td><td>14.514518</td><td>Request Sent</td><td></td><td>-</td></tr>
+<tr><td>2</td><td></td><td>14.533756</td><td>Response Received</td><td>Fail</td><td>requestOutOfRange</td></tr>
+</table></details>
+<details><summary>TC_ID-105 - <span class='pass'>Pass</span></summary>
+<table><tr><th>Step</th><th>Description</th><th>Timestamp</th><th>Type</th><th>Status</th><th>Failure Reason</th></tr>
+<tr><td>1</td><td><b>PreCondition:</b> PC_ID-009 PC_ID-010 PC_ID-011<br><b>Testcase:</b>:ECU_Supplier_Code_F1_A1_Write(invalid length given more than Expeccted)</td><td>14.606238</td><td>Request Sent</td><td></td><td>-</td></tr>
+<tr><td>2</td><td></td><td>14.643743</td><td>Response Received</td><td>Pass</td><td></td></tr>
+</table></details>
+<details><summary>TC_ID-106 - <span class='pass'>Pass</span></summary>
+<table><tr><th>Step</th><th>Description</th><th>Timestamp</th><th>Type</th><th>Status</th><th>Failure Reason</th></tr>
+<tr><td>1</td><td><b>PreCondition:</b> PC_ID-009 PC_ID-010 PC_ID-011<br><b>Testcase:</b>:Manufacturing_F1_8B_Write(invalid length given more than Expeccted)</td><td>14.720180</td><td>Request Sent</td><td></td><td>-</td></tr>
+<tr><td>2</td><td></td><td>14.753695</td><td>Response Received</td><td>Pass</td><td></td></tr>
+</table></details>
+<details><summary>TC_ID-107 - <span class='pass'>Pass</span></summary>
+<table><tr><th>Step</th><th>Description</th><th>Timestamp</th><th>Type</th><th>Status</th><th>Failure Reason</th></tr>
+<tr><td>1</td><td><b>PreCondition:</b> PC_ID-009 PC_ID-010 PC_ID-011<br><b>Testcase:</b>:ECU_Serial_Number_F1_8C_Write(invalid length given more than Expeccted)</td><td>14.819889</td><td>Request Sent</td><td></td><td>-</td></tr>
+<tr><td>2</td><td></td><td>14.853883</td><td>Response Received</td><td>Pass</td><td></td></tr>
+</table></details>
+<details><summary>TC_ID-108 - <span class='pass'>Pass</span></summary>
+<table><tr><th>Step</th><th>Description</th><th>Timestamp</th><th>Type</th><th>Status</th><th>Failure Reason</th></tr>
+<tr><td>1</td><td><b>PreCondition:</b> PC_ID-009 PC_ID-010 PC_ID-011<br><b>Testcase:</b>:Vehicle_Manufacturer_Spare_Part_Number_F1_87_Write(invalid length given more than Expeccted)</td><td>14.927815</td><td>Request Sent</td><td></td><td>-</td></tr>
+<tr><td>2</td><td></td><td>14.963803</td><td>Response Received</td><td>Pass</td><td></td></tr>
+</table></details>
+<details><summary>TC_ID-109 - <span class='fail'>Fail</span></summary>
+<table><tr><th>Step</th><th>Description</th><th>Timestamp</th><th>Type</th><th>Status</th><th>Failure Reason</th></tr>
+<tr><td>1</td><td><b>PreCondition:</b> PC_ID-009 PC_ID-010 PC_ID-011<br><b>Testcase:</b>:Vehicle_Manufacturer_ECU_HW_Number_F1_91_Write(invalid length given more than Expeccted)</td><td>15.029454</td><td>Request Sent</td><td></td><td>-</td></tr>
+<tr><td>2</td><td></td><td>15.063769</td><td>Response Received</td><td>Fail</td><td>requestOutOfRange</td></tr>
+</table></details>
+<details><summary>TC_ID-110 - <span class='fail'>Fail</span></summary>
+<table><tr><th>Step</th><th>Description</th><th>Timestamp</th><th>Type</th><th>Status</th><th>Failure Reason</th></tr>
+<tr><td>1</td><td><b>PreCondition:</b> PC_ID-009 PC_ID-010 PC_ID-011<br><b>Testcase:</b>:HardwareVersionNumber_F1_93_Write(invalid length given more than Expeccted)</td><td>15.130489</td><td>Request Sent</td><td></td><td>-</td></tr>
+<tr><td>2</td><td></td><td>15.163822</td><td>Response Received</td><td>Fail</td><td>requestOutOfRange</td></tr>
+</table></details>
+<details><summary>TC_ID-111 - <span class='fail'>Fail</span></summary>
+<table><tr><th>Step</th><th>Description</th><th>Timestamp</th><th>Type</th><th>Status</th><th>Failure Reason</th></tr>
+<tr><td>1</td><td><b>PreCondition:</b> PC_ID-009 PC_ID-010 PC_ID-011<br><b>Testcase:</b>:ECUSoftwareUnit1IVDDataIdentifier_F1_C1_Write(invalid length given more than Expeccted)</td><td>15.230659</td><td>Request Sent</td><td></td><td>-</td></tr>
+<tr><td>2</td><td></td><td>15.283761</td><td>Response Received</td><td>Fail</td><td>requestOutOfRange</td></tr>
+</table></details>
+<details><summary>TC_ID-112 - <span class='fail'>Fail</span></summary>
+<table><tr><th>Step</th><th>Description</th><th>Timestamp</th><th>Type</th><th>Status</th><th>Failure Reason</th></tr>
+<tr><td>1</td><td><b>PreCondition:</b> PC_ID-009 PC_ID-010 PC_ID-011<br><b>Testcase:</b>:SystemSupplierECUSoftwareVersionNumbe_DataIdentifier_F1_95_Write(invalid length given more than Expeccted)</td><td>15.352918</td><td>Request Sent</td><td></td><td>-</td></tr>
+<tr><td>2</td><td></td><td>15.383744</td><td>Response Received</td><td>Fail</td><td>requestOutOfRange</td></tr>
+</table></details>
+<details><summary>TC_ID-113 - <span class='fail'>Fail</span></summary>
+<table><tr><th>Step</th><th>Description</th><th>Timestamp</th><th>Type</th><th>Status</th><th>Failure Reason</th></tr>
+<tr><td>1</td><td><b>PreCondition:</b> PC_ID-009 PC_ID-010 PC_ID-011<br><b>Testcase:</b>:SystemNameOrEngineTypeDataIdentifier_Write(invalid length given more than Expeccted)</td><td>15.454991</td><td>Request Sent</td><td></td><td>-</td></tr>
+<tr><td>2</td><td></td><td>15.493767</td><td>Response Received</td><td>Fail</td><td>requestOutOfRange</td></tr>
+</table></details>
+<details><summary>PC_ID-012 - <span class='pass'>Pass</span></summary>
+<table><tr><th>Step</th><th>Description</th><th>Timestamp</th><th>Type</th><th>Status</th><th>Failure Reason</th></tr>
+<tr><td>1</td><td>Start default session</td><td>15.614650</td><td>Request Sent</td><td></td><td>-</td></tr>
+<tr><td>2</td><td></td><td>15.633790</td><td>Response Received</td><td>Pass</td><td></td></tr>
+</table></details>
+<details><summary>PC_ID-013 - <span class='pass'>Pass</span></summary>
+<table><tr><th>Step</th><th>Description</th><th>Timestamp</th><th>Type</th><th>Status</th><th>Failure Reason</th></tr>
+<tr><td>1</td><td>RequestSeed_ASK_Request</td><td>15.701919</td><td>Request Sent</td><td></td><td>-</td></tr>
+<tr><td>2</td><td></td><td>15.713918</td><td>Response Received</td><td>Pass</td><td></td></tr>
+</table></details>
+<details><summary>PC_ID-014 - <span class='pass'>Pass</span></summary>
+<table><tr><th>Step</th><th>Description</th><th>Timestamp</th><th>Type</th><th>Status</th><th>Failure Reason</th></tr>
+<tr><td>1</td><td>SendKey_ASK_Send</td><td>15.786680</td><td>Request Sent</td><td></td><td>-</td></tr>
+<tr><td>2</td><td></td><td>15.814283</td><td>Response Received</td><td>Pass</td><td></td></tr>
+</table></details>
+<details><summary>TC_ID-114 - <span class='pass'>Pass</span></summary>
+<table><tr><th>Step</th><th>Description</th><th>Timestamp</th><th>Type</th><th>Status</th><th>Failure Reason</th></tr>
+<tr><td>1</td><td><b>PreCondition:</b> PC_ID-012 PC_ID-013 PC_ID-014<br><b>Testcase:</b>:ECU_Supplier_Code_F1_A1_Write(invalid session_security denied)</td><td>15.890811</td><td>Request Sent</td><td></td><td>-</td></tr>
+<tr><td>2</td><td></td><td>15.913828</td><td>Response Received</td><td>Pass</td><td></td></tr>
+</table></details>
+<details><summary>TC_ID-115 - <span class='pass'>Pass</span></summary>
+<table><tr><th>Step</th><th>Description</th><th>Timestamp</th><th>Type</th><th>Status</th><th>Failure Reason</th></tr>
+<tr><td>1</td><td><b>PreCondition:</b> PC_ID-012 PC_ID-013 PC_ID-014<br><b>Testcase:</b>:Manufacturing_F1_8B_Write(invalid session_security denied)</td><td>15.997411</td><td>Request Sent</td><td></td><td>-</td></tr>
+<tr><td>2</td><td></td><td>16.023773</td><td>Response Received</td><td>Pass</td><td></td></tr>
+</table></details>
+<details><summary>TC_ID-116 - <span class='pass'>Pass</span></summary>
+<table><tr><th>Step</th><th>Description</th><th>Timestamp</th><th>Type</th><th>Status</th><th>Failure Reason</th></tr>
+<tr><td>1</td><td><b>PreCondition:</b> PC_ID-012 PC_ID-013 PC_ID-014<br><b>Testcase:</b>:ECU_Serial_Number_F1_8C_Write(invalid session_security denied)</td><td>16.091443</td><td>Request Sent</td><td></td><td>-</td></tr>
+<tr><td>2</td><td></td><td>16.123745</td><td>Response Received</td><td>Pass</td><td></td></tr>
+</table></details>
+<details><summary>TC_ID-117 - <span class='pass'>Pass</span></summary>
+<table><tr><th>Step</th><th>Description</th><th>Timestamp</th><th>Type</th><th>Status</th><th>Failure Reason</th></tr>
+<tr><td>1</td><td><b>PreCondition:</b> PC_ID-012 PC_ID-013 PC_ID-014<br><b>Testcase:</b>:Vehicle_Manufacturer_Spare_Part_Number_F1_87_Write(invalid session_security denied)</td><td>16.192237</td><td>Request Sent</td><td></td><td>-</td></tr>
+<tr><td>2</td><td></td><td>16.223744</td><td>Response Received</td><td>Pass</td><td></td></tr>
+</table></details>
+<details><summary>TC_ID-118 - <span class='pass'>Pass</span></summary>
+<table><tr><th>Step</th><th>Description</th><th>Timestamp</th><th>Type</th><th>Status</th><th>Failure Reason</th></tr>
+<tr><td>1</td><td><b>PreCondition:</b> PC_ID-012 PC_ID-013 PC_ID-014<br><b>Testcase:</b>:Vehicle_Manufacturer_ECU_HW_Number_F1_91_Write(invalid session_security denied)</td><td>16.297286</td><td>Request Sent</td><td></td><td>-</td></tr>
+<tr><td>2</td><td></td><td>16.323764</td><td>Response Received</td><td>Pass</td><td></td></tr>
+</table></details>
+<details><summary>TC_ID-119 - <span class='pass'>Pass</span></summary>
+<table><tr><th>Step</th><th>Description</th><th>Timestamp</th><th>Type</th><th>Status</th><th>Failure Reason</th></tr>
+<tr><td>1</td><td><b>PreCondition:</b> PC_ID-012 PC_ID-013 PC_ID-014<br><b>Testcase:</b>:HardwareVersionNumber_F1_93_Write(invalid session_security denied)</td><td>16.393684</td><td>Request Sent</td><td></td><td>-</td></tr>
+<tr><td>2</td><td></td><td>16.414345</td><td>Response Received</td><td>Pass</td><td></td></tr>
+</table></details>
+<details><summary>TC_ID-120 - <span class='pass'>Pass</span></summary>
+<table><tr><th>Step</th><th>Description</th><th>Timestamp</th><th>Type</th><th>Status</th><th>Failure Reason</th></tr>
+<tr><td>1</td><td><b>PreCondition:</b> PC_ID-012 PC_ID-013 PC_ID-014<br><b>Testcase:</b>:ECUSoftwareUnit1IVDDataIdentifier_F1_C1_Write(invalid session_security denied)</td><td>16.489020</td><td>Request Sent</td><td></td><td>-</td></tr>
+<tr><td>2</td><td></td><td>16.534323</td><td>Response Received</td><td>Pass</td><td></td></tr>
+</table></details>
+<details><summary>TC_ID-121 - <span class='pass'>Pass</span></summary>
+<table><tr><th>Step</th><th>Description</th><th>Timestamp</th><th>Type</th><th>Status</th><th>Failure Reason</th></tr>
+<tr><td>1</td><td><b>PreCondition:</b> PC_ID-012 PC_ID-013 PC_ID-014<br><b>Testcase:</b>:SystemSupplierECUSoftwareVersionNumbe_DataIdentifier_F1_95_Write(invalid session_security denied)</td><td>16.610019</td><td>Request Sent</td><td></td><td>-</td></tr>
+<tr><td>2</td><td></td><td>16.633806</td><td>Response Received</td><td>Pass</td><td></td></tr>
+</table></details>
+<details><summary>TC_ID-122 - <span class='pass'>Pass</span></summary>
+<table><tr><th>Step</th><th>Description</th><th>Timestamp</th><th>Type</th><th>Status</th><th>Failure Reason</th></tr>
+<tr><td>1</td><td><b>PreCondition:</b> PC_ID-012 PC_ID-013 PC_ID-014<br><b>Testcase:</b>:SystemNameOrEngineTypeDataIdentifier_Write(invalid session_security denied)</td><td>16.702796</td><td>Request Sent</td><td></td><td>-</td></tr>
+<tr><td>2</td><td></td><td>16.723794</td><td>Response Received</td><td>Pass</td><td></td></tr>
+</table></details>
+<details><summary>PC_ID-015 - <span class='pass'>Pass</span></summary>
+<table><tr><th>Step</th><th>Description</th><th>Timestamp</th><th>Type</th><th>Status</th><th>Failure Reason</th></tr>
+<tr><td>1</td><td>Start Extended session</td><td>16.839919</td><td>Request Sent</td><td></td><td>-</td></tr>
+<tr><td>2</td><td></td><td>16.853868</td><td>Response Received</td><td>Pass</td><td></td></tr>
+</table></details>
+<details><summary>PC_ID-016 - <span class='pass'>Pass</span></summary>
+<table><tr><th>Step</th><th>Description</th><th>Timestamp</th><th>Type</th><th>Status</th><th>Failure Reason</th></tr>
+<tr><td>1</td><td>RequestSeed_ASK_Request</td><td>16.927371</td><td>Request Sent</td><td></td><td>-</td></tr>
+<tr><td>2</td><td></td><td>16.943825</td><td>Response Received</td><td>Pass</td><td></td></tr>
+</table></details>
+<details><summary>PC_ID-017 - <span class='pass'>Pass</span></summary>
+<table><tr><th>Step</th><th>Description</th><th>Timestamp</th><th>Type</th><th>Status</th><th>Failure Reason</th></tr>
+<tr><td>1</td><td>SendKey_ASK_Send</td><td>17.540338</td><td>Request Sent</td><td></td><td>-</td></tr>
+<tr><td>2</td><td></td><td>17.553789</td><td>Response Received</td><td>Pass</td><td></td></tr>
+</table></details>
+<details><summary>TC_ID-123 - <span class='pass'>Pass</span></summary>
+<table><tr><th>Step</th><th>Description</th><th>Timestamp</th><th>Type</th><th>Status</th><th>Failure Reason</th></tr>
+<tr><td>1</td><td><b>PreCondition:</b> PC_ID-015 PC_ID-016 PC_ID-017<br><b>Testcase:</b>:ECU_Supplier_Code_F1_A1_Write(invalid security)</td><td>17.627927</td><td>Request Sent</td><td></td><td>-</td></tr>
+<tr><td>2</td><td></td><td>17.653791</td><td>Response Received</td><td>Pass</td><td></td></tr>
+</table></details>
+<details><summary>TC_ID-124 - <span class='pass'>Pass</span></summary>
+<table><tr><th>Step</th><th>Description</th><th>Timestamp</th><th>Type</th><th>Status</th><th>Failure Reason</th></tr>
+<tr><td>1</td><td><b>PreCondition:</b> PC_ID-015 PC_ID-016 PC_ID-017<br><b>Testcase:</b>:Manufacturing_F1_8B_Write(invalid security)</td><td>17.718992</td><td>Request Sent</td><td></td><td>-</td></tr>
+<tr><td>2</td><td></td><td>17.744130</td><td>Response Received</td><td>Pass</td><td></td></tr>
+</table></details>
+<details><summary>TC_ID-125 - <span class='pass'>Pass</span></summary>
+<table><tr><th>Step</th><th>Description</th><th>Timestamp</th><th>Type</th><th>Status</th><th>Failure Reason</th></tr>
+<tr><td>1</td><td><b>PreCondition:</b> PC_ID-015 PC_ID-016 PC_ID-017<br><b>Testcase:</b>:ECU_Serial_Number_F1_8C_Write(invalid security)</td><td>17.817274</td><td>Request Sent</td><td></td><td>-</td></tr>
+<tr><td>2</td><td></td><td>17.843830</td><td>Response Received</td><td>Pass</td><td></td></tr>
+</table></details>
+<details><summary>TC_ID-126 - <span class='pass'>Pass</span></summary>
+<table><tr><th>Step</th><th>Description</th><th>Timestamp</th><th>Type</th><th>Status</th><th>Failure Reason</th></tr>
+<tr><td>1</td><td><b>PreCondition:</b> PC_ID-015 PC_ID-016 PC_ID-017<br><b>Testcase:</b>:Vehicle_Manufacturer_Spare_Part_Number_F1_87_Write(invalid security)</td><td>17.925613</td><td>Request Sent</td><td></td><td>-</td></tr>
+<tr><td>2</td><td></td><td>17.953914</td><td>Response Received</td><td>Pass</td><td></td></tr>
+</table></details>
+<details><summary>TC_ID-127 - <span class='pass'>Pass</span></summary>
+<table><tr><th>Step</th><th>Description</th><th>Timestamp</th><th>Type</th><th>Status</th><th>Failure Reason</th></tr>
+<tr><td>1</td><td><b>PreCondition:</b> PC_ID-015 PC_ID-016 PC_ID-017<br><b>Testcase:</b>:Vehicle_Manufacturer_ECU_HW_Number_F1_91_Write(invalid security)</td><td>18.023304</td><td>Request Sent</td><td></td><td>-</td></tr>
+<tr><td>2</td><td></td><td>18.053919</td><td>Response Received</td><td>Pass</td><td></td></tr>
+</table></details>
+<details><summary>TC_ID-128 - <span class='pass'>Pass</span></summary>
+<table><tr><th>Step</th><th>Description</th><th>Timestamp</th><th>Type</th><th>Status</th><th>Failure Reason</th></tr>
+<tr><td>1</td><td><b>PreCondition:</b> PC_ID-015 PC_ID-016 PC_ID-017<br><b>Testcase:</b>:HardwareVersionNumber_F1_93_Write(invalid security)</td><td>18.124158</td><td>Request Sent</td><td></td><td>-</td></tr>
+<tr><td>2</td><td></td><td>18.153829</td><td>Response Received</td><td>Pass</td><td></td></tr>
+</table></details>
+<details><summary>TC_ID-129 - <span class='pass'>Pass</span></summary>
+<table><tr><th>Step</th><th>Description</th><th>Timestamp</th><th>Type</th><th>Status</th><th>Failure Reason</th></tr>
+<tr><td>1</td><td><b>PreCondition:</b> PC_ID-015 PC_ID-016 PC_ID-017<br><b>Testcase:</b>:ECUSoftwareUnit1IVDDataIdentifier_F1_C1_Write(invalid security)</td><td>18.225878</td><td>Request Sent</td><td></td><td>-</td></tr>
+<tr><td>2</td><td></td><td>18.263803</td><td>Response Received</td><td>Pass</td><td></td></tr>
+</table></details>
+<details><summary>TC_ID-130 - <span class='pass'>Pass</span></summary>
+<table><tr><th>Step</th><th>Description</th><th>Timestamp</th><th>Type</th><th>Status</th><th>Failure Reason</th></tr>
+<tr><td>1</td><td><b>PreCondition:</b> PC_ID-015 PC_ID-016 PC_ID-017<br><b>Testcase:</b>:SystemSupplierECUSoftwareVersionNumbe_DataIdentifier_F1_95_Write(invalid security)</td><td>18.333753</td><td>Request Sent</td><td></td><td>-</td></tr>
+<tr><td>2</td><td></td><td>18.363817</td><td>Response Received</td><td>Pass</td><td></td></tr>
+</table></details>
+<details><summary>TC_ID-131 - <span class='pass'>Pass</span></summary>
+<table><tr><th>Step</th><th>Description</th><th>Timestamp</th><th>Type</th><th>Status</th><th>Failure Reason</th></tr>
+<tr><td>1</td><td><b>PreCondition:</b> PC_ID-015 PC_ID-016 PC_ID-017<br><b>Testcase:</b>:SystemNameOrEngineTypeDataIdentifier_Write(invalid security)</td><td>18.429872</td><td>Request Sent</td><td></td><td>-</td></tr>
+<tr><td>2</td><td></td><td>18.454011</td><td>Response Received</td><td>Pass</td><td></td></tr>
+</table></details>
+<details><summary>PC_ID-022 - <span class='pass'>Pass</span></summary>
+<table><tr><th>Step</th><th>Description</th><th>Timestamp</th><th>Type</th><th>Status</th><th>Failure Reason</th></tr>
+<tr><td>1</td><td>Start Default session</td><td>18.571491</td><td>Request Sent</td><td></td><td>-</td></tr>
+<tr><td>2</td><td></td><td>18.593908</td><td>Response Received</td><td>Pass</td><td></td></tr>
+</table></details>
+<details><summary>TC_ID-141 - <span class='pass'>Pass</span></summary>
+<table><tr><th>Step</th><th>Description</th><th>Timestamp</th><th>Type</th><th>Status</th><th>Failure Reason</th></tr>
+<tr><td>1</td><td><b>PreCondition:</b> PC_ID-022<br><b>Testcase:</b>:RequestSeed_Request(invalid session)(Default)(27 11)</td><td>18.671870</td><td>Request Sent</td><td></td><td>-</td></tr>
+<tr><td>2</td><td></td><td>18.683838</td><td>Response Received</td><td>Pass</td><td></td></tr>
+</table></details>
+<details><summary>TC_ID-142 - <span class='pass'>Pass</span></summary>
+<table><tr><th>Step</th><th>Description</th><th>Timestamp</th><th>Type</th><th>Status</th><th>Failure Reason</th></tr>
+<tr><td>1</td><td><b>PreCondition:</b> PC_ID-022<br><b>Testcase:</b>:SendKey_Send(invalid session)(Default)(27 12)</td><td>18.755567</td><td>Request Sent</td><td></td><td>-</td></tr>
+<tr><td>2</td><td></td><td>18.774223</td><td>Response Received</td><td>Pass</td><td></td></tr>
+</table></details>
+</body></html>
