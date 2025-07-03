@@ -9,3 +9,40 @@
  8.592413 1  71E             Rx   d 8 23 6D F1 C0 AA 2C 5A F0
  8.607369 1  71E             Rx   d 8 24 13 B5 45 F5 BC C9 D6
  8.622673 1  71E             Rx   d 8 25 FD AA AA AA AA AA AA
+
+
+
+
+
+def wait_for_final_response(client, tc_id, step_desc, timeout_total=5.0):
+    start_time = time.time()
+    pending_detected = False
+
+    while time.time() - start_time < timeout_total:
+        response = client.conn.wait_frame(timeout=1)
+        if response is None:
+            continue  # Still waiting
+
+        raw_payload = list(response)
+        if len(raw_payload) >= 3 and raw_payload[0] == 0x7F and raw_payload[2] == 0x78:
+            logging.info(f"{tc_id} {step_desc} -> 0x78 Response Pending, waiting...")
+            pending_detected = True
+            continue  # Wait again
+        else:
+            # Check if it's a multi-frame (First Frame)
+            if len(raw_payload) >= 2 and (raw_payload[0] & 0xF0) == 0x10:
+                # It's a multi-frame — continue assembling
+                full_response = bytearray(response)
+                client.conn.send(bytes([0x30, 0x08, 0x0A]))  # FC: Continue to send
+                while True:
+                    next_frame = client.conn.wait_frame(timeout=1)
+                    if next_frame is None:
+                        break
+                    full_response += next_frame
+                    if len(full_response) >= (raw_payload[1] + 2):  # Total length + SID + LEN
+                        break
+                return full_response
+            return response
+    logging.warning(f"{tc_id} {step_desc} -> Timeout after waiting for response.")
+    return None
+
