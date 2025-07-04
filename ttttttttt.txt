@@ -289,9 +289,8 @@ def main():
 if __name__ == "__main__":
     main()
 
-elif selected_option == "Testcase Execution":
-                        self.oled.display_centered_text("Run Test cases")
+elif selected_option == "ECU Updater":
+                        self.oled.display_centered_text("ECU Updater")
                         time.sleep(1)
-                        self.uds.run_testcase(self.oled)
-                        self.oled.display_centered_text("Done")
+                        self.oled.display_centered_text("Need to implement")
                         time.sleep(2)
