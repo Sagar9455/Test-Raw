@@ -71,227 +71,155 @@ def wait_for_final_response(client, tc_id, step_desc, timeout_total=5.0):
     return None
 
 
+def generate_html_report(messages_by_tc, output_path, asc_filename, start_ts, end_ts, ecu_info_data=None, target_ecu=None):
+    total = len(messages_by_tc)
+    passed = sum(1 for tc in messages_by_tc.values() if all(msg["status"] == "Pass" for msg in tc))
+    failed = total - passed
+    start_dt = datetime.datetime.fromtimestamp(start_ts)
+    end_dt = datetime.datetime.fromtimestamp(end_ts)
+    Start_Timestamp = start_dt.strftime("%Y-%m-%d %H:%M:%S")
+    End_Timestamp = end_dt.strftime("%Y-%m-%d %H:%M:%S")
+    duration_seconds = float(end_ts - start_ts)
+    generated_time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")    
 
-import sys
-import os
-import time
-import logging
-import subprocess
-import RPi.GPIO as GPIO
+    html = f"""<!DOCTYPE html>
+<html>
+<head><title>UDS Diagnostic Report</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+  body {{ font-family: Arial; margin: 20px; }}
+  .pass {{ color: green; font-weight: bold; }}
+  .fail {{ color: red; font-weight: bold; }}
+  .wrapper {{
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    gap: 50px;
+    margin-top: 20px;
+  }}
+  .summary-block {{ text-align: left; min-width: 250px; }}
+  #chart-container {{ width: 300px; }}
+  table {{ border-collapse: collapse; width: 100%; margin-top: 10px; }}
+  th, td {{ border: 1px solid #ccc; padding: 8px; }}
+  th {{ background: #f0f0f0; }}
+  summary {{ font-weight: bold; cursor: pointer; }}
+</style>
+</head>
+<body>
 
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-from drivers import oled_display, button_input, config_loader, uds_client, transfer_file
+<h1 style="text-align: center;">UDS Diagnostic Report</h1>
 
-logging.basicConfig(
-    level=logging.DEBUG,
-    format='%(asctime)s [%(levelname)s] %(message)s',
-    handlers=[logging.FileHandler("uds_debug.log", mode='w'), logging.StreamHandler()]
-)
-
-class UDSApp:
-    def __init__(self):
-        self.config = None
-        self.oled = None
-        self.buttons = None
-        self.uds = None
-        self.usb = None
-        self.initialized_once=False
-        self.btn_map = {}
-        self.menu_combos = {}
-        self.file_transfer_combos = {}
-        self.initialize_dependencies()
-
-    def check_can0_present(self):
-        result = subprocess.run("ip link show can0", shell=True, stdout=subprocess.PIPE)
-        return "can0" in result.stdout.decode()
-        
+<div style="display: flex; justify-content: flex-start; align-items: flex-start; gap: 40px; margin-top: 20px; padding-left: 10px;">
+    <div style="width: 650px;">
     
-    def bringup_can_interface(self):
-        try:
-            logging.info("Bringing up CAN interface can0...")
-            subprocess.run(["sudo", "ip", "link", "set", "can0", "down"], check=True)
-            subprocess.run(["sudo", "ip", "link", "set", "can0", "up","type", "can","bitrate", str(self.bitrate),"dbitrate", str(self.dbitrate),"restart-ms", str(self.restart_ms),"berr-reporting", "on","fd", "on"], check=True)
-            subprocess.run(["sudo", "ifconfig", "can0", "up"], check=True)
-            logging.info("CAN interface can0 successfully brought up.")
-            
-        except subprocess.CalledProcessError as e:
-            logging.error(f"CAN bringup failed: {e}")
-            if self.oled:
-                self.oled.display_centered_text("CAN init failed")
-            time.sleep(2)
-    
-    def initialize_dependencies(self):
-        GPIO.cleanup()
-        self.config = config_loader.load_config("config.json")
-        can_config = self.config.get("uds", {}).get("can", {})
+        {f"<p><strong>Target ECU:</strong> {escape(target_ecu)}</p>" if target_ecu else ""}
+        {"".join(f"<p><strong>{escape(k)}:</strong> {escape(v)}</p>" for k, v in ecu_info_data.items()) if ecu_info_data else ""}
         
-        self.bitrate = can_config.get("bitrate", 500000)
-        self.dbitrate = can_config.get("dbitrate", 2000000)
-        self.restart_ms = can_config.get("restart_ms", 1000)
-        self.oled = oled_display.OLEDDisplay(self.config["display"])
+        <hr style="width: 300px;border:1px solid #999; margin:25px 0;">
         
-        if not self.initialized_once:
-            self.oled.display_centered_text("Welcome\nto\nDiagnostics")
-            time.sleep(2)
-            self.initialized_once=True
-            
-        self.oled.display_centered_text("Initializing...")
-        time.sleep(1.5)
-        self.oled.display_centered_text("Waiting for CAN")
+        <p><strong>Generated:</strong> {generated_time}</p>
+        <p><strong>CAN Log File:</strong> {asc_filename}</p>
+        <p><strong>Total Test Cases:</strong> {total}</p>
+        <p class="pass"><strong>Passed:</strong> {passed}</p>
+        <p class="fail"><strong>Failed:</strong> {failed}</p>
+        <p><strong>Start_Time:</strong> {Start_Timestamp:.3f} seconds</p>
+        <p><strong>End_Time:</strong> {End_Timestamp:.3f} seconds</p>
+        <p><strong>Test Duration:</strong> {float(duration):.3f} seconds</p>
         
-        timeout_seconds = 60
-        start_time = time.time()
+    </div>
+
+    <div id="chart-container" style="width: 320px; margin-left:70px;">
+        <canvas id="passFailChart" width="300" height="300"></canvas>
+    </div>
+</div>
+
+
+<script>
+  const ctx = document.getElementById('passFailChart').getContext('2d');
+  new Chart(ctx, {{
+    type: 'pie',
+    data: {{
+      labels: ['Passed', 'Failed'],
+      datasets: [{{
+        data: [{passed}, {failed}],
+        backgroundColor: ['#4CAF50', '#F44336']
+      }}]
+    }},
+    options: {{
+      responsive: true,
+      plugins: {{
+        legend: {{ position: 'bottom' }},
+        title: {{ display: true, text: 'Test Case Results' }}
+      }}
+    }}
+  }});
+</script>
+
+<hr><br>
+"""
+
+    for tc_id, steps in messages_by_tc.items():
+        status = steps[0]['status']
+        status_class = 'pass' if status == 'Pass' else 'fail'
+        html += f"<details><summary>{tc_id} - <span class='{status_class}'>{status}</span></summary>\n"
+        html += """<table><tr><th>Step</th><th>Description</th><th>Timestamp</th><th>Type</th><th>Status</th><th>Failure Reason</th></tr>\n"""
         
-        if can_config.get("bringup_on_startup", False):
-            while time.time() - start_time < timeout_seconds:
-                if not self.check_can0_present():
-                    logging.warning("CAN0 not detected. Retrying...")
-                    self.oled.display_centered_text("Waiting for\nCAN0...")
-                    time.sleep(1)
-                    continue
-        
-                self.bringup_can_interface()
-                time.sleep(1)
-        
-                try:
-                    logging.info("Creating temporary UDS client...")
-                    temp_uds = uds_client.UDSClient(self.config)
-                    logging.info("Trying basic communication with ECU...")
-                    success = temp_uds.try_basic_communication()
-                    if success:
-                        logging.info("UDS communication successful.")
-                        self.oled.display_centered_text("ECU Ready")
-                        break
-                    else:
-                        logging.warning("No response from ECU.")
-                        self.oled.display_centered_text("Waiting for ECU...")
-                except Exception as e:
-                     logging.error("Exception during UDS handshake", exc_info=True)
-                     self.oled.display_centered_text("ECU Comm Fail")
-                 
-        
-                time.sleep(2)
+        step_count = 1
+        for msg in steps:
+            desc = msg['desc']
+            combined_desc = ""
+	    
+            # Case 1: PreCondition and Testcase
+            if "PreCondition:" in desc and "Testcase" in desc:
+                parts = desc.split("PreCondition:", 1)[1].split("Testcase", 1)
+                pre_detail = parts[0].strip()
+                tc_detail = parts[1].strip()
+                combined_desc = f"<b>PreCondition:</b> {escape(pre_detail)}<br><b>Testcase:</b>{escape(tc_detail)}"
+	    
+            # Case 2: Only PreCondition
+            elif "PreCondition:" in desc:
+                pre_detail = desc.split("PreCondition:", 1)[1].strip()
+                combined_desc = f"<b>PreCondition:</b> {escape(pre_detail)}"
+	    
+            # Case 3: Only Testcase or any other
             else:
-                logging.error("CAN or ECU did not respond within timeout.")
-                self.oled.display_centered_text("CAN/ECU Timeout\nCheck Setup")
-                time.sleep(5)
-                raise SystemExit("Initialization failed: CAN or ECU not responding.")
-        else:
-            logging.info("CAN bring-up skipped (bringup_on_startup = false)")
+                combined_desc = escape(desc.strip())
+	    
+            # Request row
+            html += f"<tr><td>{step_count}</td><td>{combined_desc}</td><td>{msg['timestamp']:.6f}</td><td>Request Sent</td><td></td><td>-</td></tr>\n"
+            step_count += 1
+	    
+            # Response row
+            response = msg.get("response", {})
+            html += f"<tr><td>{step_count}</td><td></td><td>{response.get('timestamp', ''):.6f}</td><td>Response Received</td><td>{msg['status']}</td><td>{msg.get('failure_reason', '')}</td></tr>\n"
+            step_count += 1
+	    
+        html += "</table></details>\n"
         
-        self.btn_map = self.config["gpio"]["buttons"]
-        self.BTN_FIRST = self.btn_map.get("first")
-        self.BTN_SECOND = self.btn_map.get("second")
-        self.BTN_ENTER = self.btn_map.get("enter")
-        self.BTN_POWER = self.btn_map.get("power")
-        
-        self.menu_combos = self.config["menu_combinations"]
-        self.file_transfer_combos = self.config["file_transfer_submenu_combinations"]
-        
-        self.buttons = button_input.ButtonInput(list(self.btn_map.values()))
-        self.uds = uds_client.UDSClient(self.config)
-        self.usb = transfer_file.USBTransfer(self.oled)
-        
+    html += "</body></html>"
+    
+    with open(output_path, "w", encoding="utf-8") as f:
+         f.write(html)
+    
+    print(f"UDS HTML Report generated at:\n{output_path}\n")
 
-    def show_text(self, text):
-        self.oled.clear()
-        self.oled.display_text(text)
+def generate_report(asc_file_path, txt_file_path, output_html_file, allowed_tx_ids, allowed_rx_ids, ecu_info_data=None, target_ecu=None):
+    global DESCRIPTION_MAP
+    DESCRIPTION_MAP = load_description_map(txt_file_path)
+    get_description.used_tc_ids = set()
 
-    def main_menu(self):
-     while True:
-        print("\nSelect an option:")
-        print("1. Some Other Option")
-        print("2. Testcase Execution")
-        print("3. Exit")
+    messages_by_tc, start_ts, end_ts = parse_asc_file(
+        asc_file_path, allowed_tx_ids, allowed_rx_ids
+    )
 
-        selected_key = input("Enter your choice (1/2/3): ").strip()
+    report_path = output_html_file
 
-        if selected_key == "2":
-            selected_option = "Testcase Execution"
-        elif selected_key == "3":
-            print("Exiting...")
-            break
-        else:
-            print("Invalid input. Try again.")
-            continue
-
-        if selected_option == "Testcase Execution":
-            self.oled.display_centered_text("Run Test cases")
-            time.sleep(1)
-            self.uds.run_testcase(self.oled)
-            self.oled.display_centered_text("Done")
-            time.sleep(2)
-
-
-    def file_transfer_menu(self):
-        submenu_done = False
-
-        while not submenu_done:
-            self.show_text("- Copy  from USB\n- Transfer to USB")
-            selected_sequence = []
-            variable = 0
-
-            while True:
-                if GPIO.input(self.BTN_FIRST) == GPIO.LOW:
-                    selected_sequence.append(self.BTN_FIRST)
-                    variable = (variable * 10) + 1
-                    self.show_text(str(variable))
-                    time.sleep(0.3)
-
-                if GPIO.input(self.BTN_SECOND) == GPIO.LOW:
-                    selected_sequence.append(self.BTN_SECOND)
-                    variable = (variable * 10) + 2
-                    self.show_text(str(variable))
-                    time.sleep(0.3)
-
-                if GPIO.input(self.BTN_ENTER) == GPIO.LOW:
-                    selected_sequence.append(self.BTN_ENTER)
-                    key = str(tuple(selected_sequence))
-                    logging.info(f"Captured submenu sequence: {selected_sequence}")
-                    selected_option = self.file_transfer_combos.get(key, "Invalid Input")
-                    time.sleep(0.5)
-
-                    if selected_option == "Output -> USB":
-                        self.oled.display_centered_text("Transferring to USB...")
-                        time.sleep(1)
-                        self.usb.transfer_files_to_usb()
-                        self.oled.display_centered_text("Done")
-                        time.sleep(2)
-                        submenu_done = True
-                        break
-
-                    elif selected_option == "USB -> Raspberry Pi":
-                        self.oled.display_centered_text("Copying from USB...")
-                        time.sleep(1)
-                        usb_found=self.usb.fetch_testcase_and_config_from_usb()
-                        
-                        if not usb_found:
-                            submenu_done = True
-                            break
-                            
-                           
-                        self.oled.display_centered_text("Done")  
-                        time.sleep(2) 
-                        self.initialize_dependencies()
-                        time.sleep(2)
-                        submenu_done = True
-                        break
-
-                    else:
-                        self.oled.display_centered_text("Invalid Input")
-                        time.sleep(1)
-                        break
-
-def main():
-    app = UDSApp()
-    app.main_menu()
-
-if __name__ == "__main__":
-    main()
-
-if GPIO.input(self.BTN_POWER) == GPIO.LOW:
-                    self.oled.display_centered_text("Shutting Down")
-                    time.sleep(2)
-                    GPIO.cleanup()
-                    os.system("sudo poweroff")
-                    self.oled.clear()
+    generate_html_report(
+        messages_by_tc,
+        report_path,
+        os.path.basename(asc_file_path),
+        start_ts,
+        end_ts,
+        ecu_info_data,
+        target_ecu
+    )
