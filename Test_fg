@@ -288,3 +288,9 @@ def generate_report(asc_file_path, txt_file_path, output_html_file, allowed_tx_i
         ecu_info_data,
         target_ecu
     )
+start_dt = datetime.datetime.fromtimestamp(start_ts)
+end_dt = datetime.datetime.fromtimestamp(end_ts)
+Start_Timestamp = start_dt.strftime("%Y-%m-%d %H:%M:%S")
+End_Timestamp = end_dt.strftime("%Y-%m-%d %H:%M:%S")
+duration_seconds = end_ts - start_ts
+generated_time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
