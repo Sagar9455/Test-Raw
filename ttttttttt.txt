@@ -552,3 +552,6 @@ def generate_html_report(messages_by_tc, output_path, asc_filename, start_ts, en
     print(f"✅ UDS HTML Report generated at:\n{output_path}\n")
 
 
+messages_by_tc, start_ts, end_ts, base_datetime = parse_asc_file(
+    asc_file_path, allowed_tx_ids, allowed_rx_ids
+)
