@@ -1,14 +1,38 @@
-5.502550 1  716             Tx   d 8 03 22 F1 C1 00 00 00 00
- 5.542415 1  71E             Rx   d 8 03 7F 22 78 AA AA AA AA
- 7.573091 1  716             Tx   d 8 03 22 F1 95 00 00 00 00
- 8.042296 1  71E             Rx   d 8 03 7F 22 78 AA AA AA AA
- 8.552341 1  71E             Rx   d 8 10 23 62 F1 C1 A6 32 F7
- 8.558035 1  716             Tx   d 8 30 08 0A 00 00 00 00 00
- 8.562347 1  71E             Rx   d 8 21 CD 4D F6 CD A6 04 EB
- 8.577522 1  71E             Rx   d 8 22 7E 3A 2E 85 0A 39 2D
- 8.592413 1  71E             Rx   d 8 23 6D F1 C0 AA 2C 5A F0
- 8.607369 1  71E             Rx   d 8 24 13 B5 45 F5 BC C9 D6
- 8.622673 1  71E             Rx   d 8 25 FD AA AA AA AA AA AA
+def main_menu(self):
+    while True:
+        print("\nSelect an option:")
+        print("1. ECU Information")
+        print("2. Testcase Execution")
+        print("3. Exit")
+
+        selected_key = input("Enter your choice (1/2/3): ").strip()
+
+        if selected_key == "1":
+            selected_option = "ECU Information"
+        elif selected_key == "2":
+            selected_option = "Testcase Execution"
+        elif selected_key == "3":
+            print("Exiting...")
+            break
+        else:
+            print("Invalid input. Try again.")
+            continue
+
+        if selected_option == "ECU Information":
+            self.oled.display_centered_text("ECU Info Reading...")
+            time.sleep(1)
+            # Add your ECU info function here:
+            self.uds.read_ecu_info(self.oled)
+            self.oled.display_centered_text("ECU Info Done")
+            time.sleep(2)
+
+        elif selected_option == "Testcase Execution":
+            self.oled.display_centered_text("Run Test cases")
+            time.sleep(1)
+            self.uds.run_testcase(self.oled)
+            self.oled.display_centered_text("Done")
+            time.sleep(2)
+
 
 
 
