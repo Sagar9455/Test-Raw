@@ -289,3 +289,9 @@ def main():
 if __name__ == "__main__":
     main()
 
+elif selected_option == "Testcase Execution":
+                        self.oled.display_centered_text("Run Test cases")
+                        time.sleep(1)
+                        self.uds.run_testcase(self.oled)
+                        self.oled.display_centered_text("Done")
+                        time.sleep(2)
