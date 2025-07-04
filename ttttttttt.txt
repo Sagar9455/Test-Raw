@@ -223,3 +223,197 @@ def generate_report(asc_file_path, txt_file_path, output_html_file, allowed_tx_i
         ecu_info_data,
         target_ecu
     )
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+import os
+import re
+import datetime
+from collections import defaultdict
+from html import escape
+
+# ... (Your DESCRIPTION_MAP and get_description definitions remain the same)
+
+def parse_line(line):
+    line = line.strip()
+    if not line or " d " not in line:
+        return None
+    parts = line.split()
+    try:
+        timestamp = float(parts[0])
+    except:
+        return None
+    can_id = parts[2].upper()
+    direction = parts[3]
+    data_bytes = parse_data_bytes(line)
+    return {
+        "timestamp": timestamp,
+        "can_id": can_id,
+        "direction": direction,
+        "data_bytes": data_bytes,
+        "raw": line
+    }
+
+def parse_asc_file(asc_file_path, allowed_tx_ids, allowed_rx_ids):
+    messages_by_tc = defaultdict(list)
+    current_request = None
+    start_ts, end_ts = None, None
+    skip_next_fc = False
+    pending_flag = False
+    rx_multi_response_pending = False
+    rx_multi_response_first = None
+    base_datetime = None
+
+    allowed_tx_ids = set(f"{id:X}" for id in allowed_tx_ids)
+    allowed_rx_ids = set(f"{id:X}" for id in allowed_rx_ids)
+
+    with open(asc_file_path, "r", encoding="utf-8", errors="ignore") as f:
+        lines = f.readlines()
+
+    # Extract base absolute timestamp from Begin Triggerblock
+    for line in lines:
+        if line.startswith("Begin Triggerblock"):
+            try:
+                date_str = line.strip().replace("Begin Triggerblock ", "")
+                base_datetime = datetime.datetime.strptime(date_str, "%a %b %d %I:%M:%S.%f %p %Y")
+            except ValueError:
+                base_datetime = None
+            break
+
+    for line in lines:
+        line = line.strip()
+        if not line or not re.match(r"^\d+\.\d+", line):
+            continue
+
+        msg = parse_line(line)
+        if not msg:
+            continue
+
+        can_id = msg["can_id"].upper()
+        direction = msg["direction"]
+        data_bytes = msg["data_bytes"]
+
+        if direction == "Tx" and can_id in allowed_tx_ids:
+            if data_bytes and data_bytes[0].upper() == "10":
+                skip_next_fc = True
+            desc, tc_id, expected_resp = get_description(data_bytes)
+            if desc and tc_id:
+                current_request = {
+                    "timestamp": msg["timestamp"],
+                    "can_id": can_id,
+                    "direction": direction,
+                    "data_bytes": data_bytes,
+                    "desc": desc,
+                    "tc_id": tc_id,
+                    "expected_resp": expected_resp,
+                    "status": "Pending"
+                }
+
+        elif direction == "Rx" and can_id in allowed_rx_ids:
+            if skip_next_fc and data_bytes and data_bytes[0].upper() == "30":
+                skip_next_fc = False
+                continue
+
+            if data_bytes and len(data_bytes) >= 4 and data_bytes[1].upper() == "7F" and data_bytes[3].upper() == "78":
+                pending_flag = True
+                continue
+
+            if data_bytes and data_bytes[0].upper() == "10":
+                rx_multi_response_first = msg
+                rx_multi_response_pending = True
+                continue
+
+            if rx_multi_response_pending and data_bytes and data_bytes[0].upper() == "21":
+                combined_bytes = rx_multi_response_first["data_bytes"][:7] + data_bytes[1:]
+                rx_msg = {
+                    "timestamp": rx_multi_response_first["timestamp"],
+                    "can_id": rx_multi_response_first["can_id"],
+                    "direction": rx_multi_response_first["direction"],
+                    "data_bytes": combined_bytes
+                }
+                if current_request:
+                    status, reason = get_status(combined_bytes, current_request.get("expected_resp", ""))
+                    current_request.update({
+                        "response": rx_msg,
+                        "status": status,
+                        "failure_reason": reason
+                    })
+                    messages_by_tc[current_request["tc_id"]].append(current_request)
+                    req_ts = current_request["timestamp"]
+                    res_ts = rx_msg["timestamp"]
+                    start_ts = min(start_ts or req_ts, req_ts)
+                    end_ts = max(end_ts or res_ts, res_ts)
+                    current_request = None
+
+                rx_multi_response_pending = False
+                rx_multi_response_first = None
+                continue
+
+            if pending_flag:
+                if current_request:
+                    status, reason = get_status(data_bytes, current_request.get("expected_resp", ""))
+                    current_request.update({
+                        "response": msg,
+                        "status": status,
+                        "failure_reason": reason
+                    })
+                    messages_by_tc[current_request["tc_id"]].append(current_request)
+                    req_ts = current_request["timestamp"]
+                    res_ts = msg["timestamp"]
+                    start_ts = min(start_ts or req_ts, req_ts)
+                    end_ts = max(end_ts or res_ts, res_ts)
+                    current_request = None
+                pending_flag = False
+                continue
+
+            if current_request:
+                status, reason = get_status(data_bytes, current_request.get("expected_resp", ""))
+                current_request.update({
+                    "response": msg,
+                    "status": status,
+                    "failure_reason": reason
+                })
+                messages_by_tc[current_request["tc_id"]].append(current_request)
+                req_ts = current_request["timestamp"]
+                res_ts = msg["timestamp"]
+                start_ts = min(start_ts or req_ts, req_ts)
+                end_ts = max(end_ts or res_ts, res_ts)
+                current_request = None
+
+    return messages_by_tc, start_ts or 0, end_ts or 0, base_datetime
+
