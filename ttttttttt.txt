@@ -289,8 +289,9 @@ def main():
 if __name__ == "__main__":
     main()
 
-elif selected_option == "ECU Updater":
-                        self.oled.display_centered_text("ECU Updater")
+if selected_option == "ECU Information":
+                        self.oled.display_centered_text("Read ECU Info")
                         time.sleep(1)
-                        self.oled.display_centered_text("Need to implement")
+                        self.uds.get_ecu_information(self.oled)
+                        self.oled.display_centered_text("Done")
                         time.sleep(2)
