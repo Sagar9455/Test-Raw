@@ -1,151 +1,19 @@
-def run_testcase(self, oled):
-    def wait_for_final_response(client, tc_id, step_desc, max_wait=3):
-        response = client.conn.wait_frame(timeout=2)
-        start_time = time.time()
-        while response and response[0] == 0x7F and response[2] == 0x78:
-            logging.info(f"{tc_id} {step_desc} -> 0x78 Response Pending, waiting for final response...")
-            response = client.conn.wait_frame(timeout=2)
-            if time.time() - start_time > max_wait:
-                logging.warning(f"{tc_id} {step_desc} -> Timed out waiting after 0x78")
-                break
-        return response
-
-    if not self.check_memory(oled):
-        return
-
-    ecu_info_data = self.get_ecu_information(oled=None, logging_enable=False)
-    testcase_file_path = self.get_testcase_file_path()
-    self.start_logging(log_name_suffix="Testcase")
-    grouped_cases = load_testcases(testcase_file_path)
-    self.context = {}
-
-    immediate_mode = self.config["uds"].get("immediate_mode", False)
-
-    for tc_id, steps in grouped_cases.items():
-        print("\n")
-        logging.info(f"Running Test Case: {tc_id}")
-
-        for step in steps:
-            tc_id, step_desc, service, subfunc, expected, write_data, addressing = step
-            status = "Fail"
-            failure_reason = ""
-
-            try:
-                self.switch_mode(addressing)
-                with Client(self.active_conn["conn"], request_timeout=2, config=self.active_conn["client_config"]) as client:
-                    logging.info(f"Switched to {addressing} mode for TC: {tc_id} Step: {step_desc}")
-
-                    service_int = int(service, 16)
-                    expected_bytes = [int(b, 16) for b in expected.strip().split()]
-                    data_to_write = [int(b, 16) for b in write_data.strip().split()] if write_data else []
-                    response = None
-
-                    if service_int == 0x10:
-                        if subfunc != "":
-                            subfunc_int = int(subfunc, 16)
-                            raw_request = bytes([0x10, subfunc_int])
-                        else:
-                            subfunc_clean = subfunc.strip()
-                            subfunc_bytes = bytes.fromhex(subfunc_clean) if subfunc_clean else b''
-                            raw_request = bytearray([service_int]) + subfunc_bytes
-
-                        logging.info(f"{tc_id} - {step_desc}: Sending {raw_request.hex().upper()}")
-                        time.sleep(0.05)
-                        client.conn.send(raw_request)
-                        response = wait_for_final_response(client, tc_id, step_desc)
-
-                    else:
-                        logging.warning(f"{tc_id} - Unsupported service: {service}")
-                        continue
-
-                    # === Response Verification ===
-                    if response is not None:
-                        try:
-                            raw_payload = list(response)
-                            logging.debug(f"{tc_id} {step_desc} -> Received payload: {raw_payload}")
-
-                            status, failure_reason = self.verify_response(raw_payload, expected_bytes, tc_id, step_desc)
-
-                            if status == "Pass":
-                                logging.info(f"{tc_id} {step_desc} -> PASS")
-                            else:
-                                logging.warning(f"{tc_id} {step_desc} -> FAIL - {failure_reason}")
-
-                        except Exception as e:
-                            status = "Fail"
-                            failure_reason = f"Could not extract payload: {str(e)}"
-                            logging.error(f"{tc_id} {step_desc} -> FAIL - {failure_reason}")
-                    else:
-                        status = "Fail"
-                        failure_reason = "No response received (timeout)"
-                        logging.error(f"{tc_id} {step_desc} -> FAIL - {failure_reason}")
-
-            except Exception as e:
-                status = "Fail"
-                failure_reason = str(e)
-                logging.error(f"{tc_id} {step_desc} -> EXCEPTION - {failure_reason}")
-
-            # === OLED Display + Delay ===
-            try:
-                if not immediate_mode:
-                    delay_key = service.upper()
-                    delay = float(self.step_delays.get(delay_key, self.default_delay))
-                    oled.display_centered_text(f"{tc_id}\n{step_desc[:20]}\n{status}")
-                    time.sleep(delay)
-            except Exception as e:
-                logging.error(f"OLED/Delay Error: {str(e)}")
-
-    self.stop_logging()
-    time.sleep(1.5)
-
-    full_log_path = self.can_logger.get_log_path() or "N/A"
-    can_log_file = os.path.basename(full_log_path)
-
-    if not os.path.isfile(full_log_path):
-        logging.error(f"File not found after logging stopped: {full_log_path}")
-        oled.display_centered_text("Log Error!\nFile Missing.")
-        return
-    else:
-        oled.display_centered_text("Log Generated!\n")
-        time.sleep(2)
-
-    report_dir = os.path.join(self.project_root, 'output', 'html_reports')
-    os.makedirs(report_dir, exist_ok=True)
-    report_filename = f"UDS_Report_{datetime.now().strftime('%Y%m%d_%H%M%S')}.html"
-    report_path = os.path.join(report_dir, report_filename)
-
-    for _ in range(6):
-        if os.path.exists(full_log_path):
-            print(f"Log file found: {full_log_path}")
-            break
-        else:
-            print(f" Waiting for log file to appear: {full_log_path}")
-            time.sleep(0.5)
-    else:
-        print(f"File not found: {can_log_file}")
-
-    generate_report(
-        asc_file_path=full_log_path,
-        txt_file_path=testcase_file_path,
-        output_html_file=report_path,
-        allowed_tx_ids=self.allowed_tx_ids,
-        allowed_rx_ids=self.allowed_rx_ids,
-        ecu_info_data=ecu_info_data,
-        target_ecu=self.target_ecu
-    )
-
-    oled.display_centered_text("Report Generated")
-    time.sleep(2)
-
-
-def generate_html_report(messages_by_tc, output_path, asc_filename, start_ts, end_ts, ecu_info_data=None, target_ecu=None):
+def generate_html_report(messages_by_tc, output_path, asc_filename, start_ts, end_ts, ecu_info_data=None, target_ecu=None, base_datetime=None):
     total = len(messages_by_tc)
     passed = sum(1 for tc in messages_by_tc.values() if all(msg["status"] == "Pass" for msg in tc))
     failed = total - passed
-    Start_Timestamp = start_ts
-    End_Timestamp = end_ts
     duration = end_ts - start_ts
     generated_time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+    # Format Start_Timestamp and End_Timestamp
+    if base_datetime:
+        start_dt = base_datetime + datetime.timedelta(seconds=start_ts)
+        end_dt = base_datetime + datetime.timedelta(seconds=end_ts)
+        Start_Timestamp = start_dt.strftime("%Y-%m-%d %H:%M:%S.%f")[:-3]
+        End_Timestamp = end_dt.strftime("%Y-%m-%d %H:%M:%S.%f")[:-3]
+    else:
+        Start_Timestamp = f"{start_ts:.3f} seconds"
+        End_Timestamp = f"{end_ts:.3f} seconds"
 
     html = f"""<!DOCTYPE html>
 <html>
@@ -187,8 +55,8 @@ def generate_html_report(messages_by_tc, output_path, asc_filename, start_ts, en
         <p><strong>Total Test Cases:</strong> {total}</p>
         <p class="pass"><strong>Passed:</strong> {passed}</p>
         <p class="fail"><strong>Failed:</strong> {failed}</p>
-        <p><strong>Start_Time:</strong> {Start_Timestamp:.3f} seconds</p>
-        <p><strong>End_Time:</strong> {End_Timestamp:.3f} seconds</p>
+        <p><strong>Start_Time:</strong> {Start_Timestamp}</p>
+        <p><strong>End_Time:</strong> {End_Timestamp}</p>
         <p><strong>Test Duration:</strong> {duration:.3f} seconds</p>
         
     </div>
@@ -197,7 +65,6 @@ def generate_html_report(messages_by_tc, output_path, asc_filename, start_ts, en
         <canvas id="passFailChart" width="300" height="300"></canvas>
     </div>
 </div>
-
 
 <script>
   const ctx = document.getElementById('passFailChart').getContext('2d');
@@ -228,52 +95,44 @@ def generate_html_report(messages_by_tc, output_path, asc_filename, start_ts, en
         status_class = 'pass' if status == 'Pass' else 'fail'
         html += f"<details><summary>{tc_id} - <span class='{status_class}'>{status}</span></summary>\n"
         html += """<table><tr><th>Step</th><th>Description</th><th>Timestamp</th><th>Type</th><th>Status</th><th>Failure Reason</th></tr>\n"""
-        
+
         step_count = 1
         for msg in steps:
             desc = msg['desc']
             combined_desc = ""
-	    
-            # Case 1: PreCondition and Testcase
+
             if "PreCondition:" in desc and "Testcase" in desc:
                 parts = desc.split("PreCondition:", 1)[1].split("Testcase", 1)
                 pre_detail = parts[0].strip()
                 tc_detail = parts[1].strip()
                 combined_desc = f"<b>PreCondition:</b> {escape(pre_detail)}<br><b>Testcase:</b>{escape(tc_detail)}"
-	    
-            # Case 2: Only PreCondition
             elif "PreCondition:" in desc:
                 pre_detail = desc.split("PreCondition:", 1)[1].strip()
                 combined_desc = f"<b>PreCondition:</b> {escape(pre_detail)}"
-	    
-            # Case 3: Only Testcase or any other
             else:
                 combined_desc = escape(desc.strip())
-	    
-            # Request row
+
             html += f"<tr><td>{step_count}</td><td>{combined_desc}</td><td>{msg['timestamp']:.6f}</td><td>Request Sent</td><td></td><td>-</td></tr>\n"
             step_count += 1
-	    
-            # Response row
             response = msg.get("response", {})
             html += f"<tr><td>{step_count}</td><td></td><td>{response.get('timestamp', ''):.6f}</td><td>Response Received</td><td>{msg['status']}</td><td>{msg.get('failure_reason', '')}</td></tr>\n"
             step_count += 1
-	    
+
         html += "</table></details>\n"
-        
+
     html += "</body></html>"
-    
+
     with open(output_path, "w", encoding="utf-8") as f:
-         f.write(html)
-    
-    print(f"UDS HTML Report generated at:\n{output_path}\n")
+        f.write(html)
+
+    print(f"✅ UDS HTML Report generated at:\n{output_path}\n")
 
 def generate_report(asc_file_path, txt_file_path, output_html_file, allowed_tx_ids, allowed_rx_ids, ecu_info_data=None, target_ecu=None):
     global DESCRIPTION_MAP
     DESCRIPTION_MAP = load_description_map(txt_file_path)
     get_description.used_tc_ids = set()
 
-    messages_by_tc, start_ts, end_ts = parse_asc_file(
+    messages_by_tc, start_ts, end_ts, base_datetime = parse_asc_file(
         asc_file_path, allowed_tx_ids, allowed_rx_ids
     )
 
@@ -286,11 +145,6 @@ def generate_report(asc_file_path, txt_file_path, output_html_file, allowed_tx_i
         start_ts,
         end_ts,
         ecu_info_data,
-        target_ecu
+        target_ecu,
+        base_datetime
     )
-start_dt = datetime.datetime.fromtimestamp(start_ts)
-end_dt = datetime.datetime.fromtimestamp(end_ts)
-Start_Timestamp = start_dt.strftime("%Y-%m-%d %H:%M:%S")
-End_Timestamp = end_dt.strftime("%Y-%m-%d %H:%M:%S")
-duration_seconds = end_ts - start_ts
-generated_time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
