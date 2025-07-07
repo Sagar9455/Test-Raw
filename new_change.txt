@@ -1,0 +1,3 @@
+- Read ECU Info
+- Run Test Cases
+- Shut Down
